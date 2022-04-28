@@ -4,9 +4,9 @@ Contains work done from my Cybersecurity Masters at the National College of Irel
 ## Year 2
 ## Semester 1 Modules - 2022 - January to May
 - Security Fundamentals
-    - Report on Ransomware
+    - Ransomware Threat Report
 - Network Security and Penetration Testing
-    - Penetration Test Report on a Hack The Box Machine
+    - Penetration Test Report (Pen test conducted on Hack the Box Machine)
     - Attack Vector Report  
 - IT Law and Ethics
     - Intellectual Property Law & Copyright Advice
@@ -16,6 +16,7 @@ Contains work done from my Cybersecurity Masters at the National College of Irel
 - Cryptography
 - Malware Analysis
 
+***
 ## Year 2
 ## Semester 1 Modules - 2023 - January to May
 - Secure Programming for Application Development

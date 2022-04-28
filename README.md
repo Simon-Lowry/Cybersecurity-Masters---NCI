@@ -6,7 +6,7 @@ Contains work done from my Cybersecurity Masters at the National College of Irel
 - Security Fundamentals
     - Ransomware Threat Report - Grade: 75%
 - Network Security and Penetration Testing
-    - Penetration Test Report (Pen test conducted on Hack the Box Machine)
+    - Penetration Test Report
     - Attack Vector Report  (to be added soon)
 - IT Law and Ethics
     - Intellectual Property Law & Copyright Advice

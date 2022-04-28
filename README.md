@@ -23,6 +23,6 @@ Contains work done from my Cybersecurity Masters at the National College of Irel
 - Cloud Security
 - Research in Computing
 
-## Semester 2 Modules - 2022 - September to December
+## Semester 2 Modules - 2023 - September to December
 - Research Methods
 - Project

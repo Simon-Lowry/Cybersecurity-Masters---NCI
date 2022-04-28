@@ -4,10 +4,10 @@ Contains work done from my Cybersecurity Masters at the National College of Irel
 ## Year 1
 ## Semester 1 Modules - 2022 - January to May
 - Security Fundamentals
-    - Ransomware Threat Report
+    - Ransomware Threat Report - Grade: 75%
 - Network Security and Penetration Testing
     - Penetration Test Report (Pen test conducted on Hack the Box Machine)
-    - Attack Vector Report  
+    - Attack Vector Report  (to be added soon)
 - IT Law and Ethics
     - Intellectual Property Law & Copyright Advice
 

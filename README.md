@@ -1,4 +1,4 @@
-# Cybersecurity-Masters---NCI
+# Cybersecurity Masters - National College of Ireland
 Contains work done from my Cybersecurity Masters at the National College of Ireland.
 
 ## Year 2

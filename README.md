@@ -4,12 +4,12 @@ Contains work done from my Cybersecurity Masters at the National College of Irel
 ## Year 1
 ## Semester 1 Modules - 2022 - January to May
 - Security Fundamentals
-    - Ransomware Threat Report - Grade: 75% (to be added soon)
+    - Ransomware Threat Report - Grade: 75% 
 - Network Security and Penetration Testing
     - Penetration Test Report
-    - Attack Vector Report  (to be added soon)
+    - Attack Vector Report 
 - IT Law and Ethics
-    - Intellectual Property Law & Copyright Advice - Grade: 70% (to be added soon)
+    - Intellectual Property Law & Copyright Advice - Grade: 70%
 
 ## Semester 2 Modules - 2022 - September to December
 - Secure Programming for Web

@@ -1,4 +1,4 @@
-package com.spfwproject.quotes.models;
+package com.spfwproject.quotes.entities;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;

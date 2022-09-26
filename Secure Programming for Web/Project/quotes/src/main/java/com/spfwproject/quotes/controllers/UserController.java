@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,18 +17,19 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.spfwproject.quotes.entities.User;
 import com.spfwproject.quotes.repositories.UserRepository;
-import com.spfwproject.quotes.models.User;
+import com.spfwproject.quotes.services.UserService;
 
 @RestController
 @RequestMapping("/users")
-public class UserController {
-    private final UserRepository userRepository;
-    
+public class UserController {    
+    @Autowired
+    private final UserService userService;    
     private Logger logger = LoggerFactory.getLogger(UserController.class);
 
-    public UserController(UserRepository userRepository) {
-        this.userRepository = userRepository;
+    public UserController(UserService userService) {
+        this.userService = userService;
     }
 
     @GetMapping
@@ -35,7 +37,7 @@ public class UserController {
     	final String methodName = "getUsers";
     	logger.info("Entered " + methodName);
     	
-    	List<User> allusers =  userRepository.findAll();
+    	List<User> allusers =  userService.getUsers();
     	
     	logger.info("Exiting method " + methodName + "." );
     	return allusers;
@@ -47,7 +49,9 @@ public class UserController {
     	final String methodName = "getUser";
     	logger.info("Entered " + methodName + ", retrieving user with id: " + id);
     	
-    	User user = userRepository.findById(id).orElseThrow(RuntimeException::new);
+    	// TODO: is user making request authenticated
+    	// TODO: is user authorized to retrieve given user's information
+    	User user = userService.getUser(id);
     	 
     	logger.info("Exiting method " + methodName + "." );
         return user;
@@ -58,7 +62,7 @@ public class UserController {
     	final String methodName = "createUser";
     	logger.info("Entered " + methodName);
         
-    	User saveduser = userRepository.save(user);
+    	User saveduser = userService.createUser(user);
         ResponseEntity response = ResponseEntity.created(new URI("/users/" + saveduser.getId())).body(saveduser);
         
         logger.info("Exiting method " + methodName + "." );
@@ -70,11 +74,7 @@ public class UserController {
     	final String methodName = "updateUser";
     	logger.info("Entered " + methodName);
        
-    	User currentUser = userRepository.findById(id).orElseThrow(RuntimeException::new);
-    	currentUser.setName(user.getName());
-    	currentUser.setEmail(user.getEmail());
-    	currentUser = userRepository.save(user);
-
+    	User updatedUser = userService.updateUser(id, user);
         ResponseEntity response = ResponseEntity.ok(user);
        
         logger.info("Exiting method " + methodName + "." );
@@ -86,7 +86,7 @@ public class UserController {
     	final String methodName = "deleteUser";
     	logger.info("Entered " + methodName);
         
-    	userRepository.deleteById(id);
+    	userService.deleteUser(id);
         ResponseEntity response = ResponseEntity.ok().build();
         
         logger.info("Exiting method " + methodName + "." );

@@ -57,7 +57,15 @@
 	        <groupId>com.h2database</groupId>
 	        <artifactId>h2</artifactId>
 	        <scope>runtime</scope>
-	    </dependency>	
+	    </dependency>
+	    
+	    <!-- https://mvnrepository.com/artifact/javax.xml.crypto/jsr105-api -->
+		<dependency>
+		    <groupId>javax.xml.crypto</groupId>
+		    <artifactId>jsr105-api</artifactId>
+		    <version>1.0.1</version>
+		</dependency>
+	    	
 		
 	</dependencies>
 

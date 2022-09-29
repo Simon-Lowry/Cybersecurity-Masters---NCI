@@ -7,7 +7,7 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name = "Quotes")
-public class Quote {
+public class QuoteDBO {
 	@Id
     @GeneratedValue
     private Long id;
@@ -16,9 +16,9 @@ public class Quote {
 	private String quoteText;
 	private String quotePrivacySetting;
     
-    public Quote() {};
+    public QuoteDBO() {};
     
-    public Quote(Long id, Long userId, String quoteText, String quotePrivacySetting) {
+    public QuoteDBO(Long id, Long userId, String quoteText, String quotePrivacySetting) {
 		this.id = id;
 		this.userId = userId;
 		this.quoteText = quoteText;

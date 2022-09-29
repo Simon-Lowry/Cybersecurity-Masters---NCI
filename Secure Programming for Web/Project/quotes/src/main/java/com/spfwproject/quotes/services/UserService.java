@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import com.spfwproject.quotes.controllers.UserController;
-import com.spfwproject.quotes.entities.User;
+import com.spfwproject.quotes.entities.UserDBO;
 import com.spfwproject.quotes.repositories.UserRepository;
 
 
@@ -30,43 +30,43 @@ public class UserService {
 		 this.userRepository = userRepository;
 	 }
 
-	public List<User> getUsers() {
+	public List<UserDBO> getUsers() {
 		final String methodName = "getUsers";
 		logger.info("Entered " + methodName);
 
-		List<User> allusers = userRepository.findAll();
+		List<UserDBO> allusers = userRepository.findAll();
 
 		logger.info("Exiting method " + methodName + ".");
 		return allusers;
 
 	}
 
-	public User getUser(@PathVariable Long id) {
+	public UserDBO getUser(@PathVariable Long id) {
 		final String methodName = "getUser";
 		logger.info("Entered " + methodName + ", retrieving user with id: " + id);
 
-		User user = userRepository.findById(id).orElseThrow(RuntimeException::new);
+		UserDBO user = userRepository.findById(id).orElseThrow(RuntimeException::new);
 
 		logger.info("Exiting method " + methodName + ".");
 		return user;
 	}
 
 	@PostMapping
-	public User createUser(@RequestBody User user) throws URISyntaxException {
+	public UserDBO createUser(@RequestBody UserDBO user) throws URISyntaxException {
 		final String methodName = "createUser";
 		logger.info("Entered " + methodName);
 
-		User createdUser = userRepository.save(user);
+		UserDBO createdUser = userRepository.save(user);
 
 		logger.info("Exiting method " + methodName + ".");
 		return createdUser;
 	}
 
-	public User updateUser(@PathVariable Long id, @RequestBody User user) {
+	public UserDBO updateUser(@PathVariable Long id, @RequestBody UserDBO user) {
 		final String methodName = "updateUser";
 		logger.info("Entered " + methodName);
 
-		User userToBeUpdated = userRepository.findById(id).orElseThrow(RuntimeException::new);
+		UserDBO userToBeUpdated = userRepository.findById(id).orElseThrow(RuntimeException::new);
 		userToBeUpdated.setName(user.getName());
 		userToBeUpdated.setEmail(user.getEmail());
 		userToBeUpdated = userRepository.save(user);

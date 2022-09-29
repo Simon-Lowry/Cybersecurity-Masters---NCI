@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import com.spfwproject.quotes.controllers.QuoteController;
-import com.spfwproject.quotes.entities.Quote;
+import com.spfwproject.quotes.entities.QuoteDBO;
 import com.spfwproject.quotes.repositories.QuoteRepository;
 import com.spfwproject.quotes.repositories.QuoteRepository;
 
@@ -23,43 +23,43 @@ public class QuoteService {
 		this.quoteRepository = quoteRepo;
 	}
 
-	public List<Quote> getQuote() {
+	public List<QuoteDBO> getQuote() {
 		final String methodName = "getQuote";
 		logger.info("Entered " + methodName);
 
-		List<Quote> allQuotes = quoteRepository.findAll();
+		List<QuoteDBO> allQuotes = quoteRepository.findAll();
 
 		logger.info("Exiting method " + methodName + ".");
 		return allQuotes;
 
 	}
 
-	public Quote getQuote(@PathVariable Long id) {
+	public QuoteDBO getQuote(@PathVariable Long id) {
 		final String methodName = "getQuote";
 		logger.info("Entered " + methodName + ", retrieving Quote with id: " + id);
 
-		Quote quote = quoteRepository.findById(id).orElseThrow(RuntimeException::new);
+		QuoteDBO quote = quoteRepository.findById(id).orElseThrow(RuntimeException::new);
 
 		logger.info("Exiting method " + methodName + ".");
 		return quote;
 	}
 
 	@PostMapping
-	public Quote createQuote(@RequestBody Quote Quote) throws URISyntaxException {
+	public QuoteDBO createQuote(@RequestBody QuoteDBO Quote) throws URISyntaxException {
 		final String methodName = "createQuote";
 		logger.info("Entered " + methodName);
 
-		Quote createdQuote = quoteRepository.save(Quote);
+		QuoteDBO createdQuote = quoteRepository.save(Quote);
 
 		logger.info("Exiting method " + methodName + ".");
 		return createdQuote;
 	}
 
-	public Quote updateQuote(@PathVariable Long id, @RequestBody Quote quote) {
+	public QuoteDBO updateQuote(@PathVariable Long id, @RequestBody QuoteDBO quote) {
 		final String methodName = "updateQuote";
 		logger.info("Entered " + methodName);
 
-		Quote quoteToBeUpdated = quoteRepository.findById(id).orElseThrow(RuntimeException::new);
+		QuoteDBO quoteToBeUpdated = quoteRepository.findById(id).orElseThrow(RuntimeException::new);
 		quoteToBeUpdated.setQuoteText(quote.getQuoteText());
 		quoteToBeUpdated.setQuotePrivacySetting(quote.getQuotePrivacySetting());
 		quoteToBeUpdated = quoteRepository.save(quote);

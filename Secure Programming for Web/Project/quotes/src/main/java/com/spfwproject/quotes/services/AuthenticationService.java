@@ -6,6 +6,8 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
@@ -17,13 +19,17 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Component;
 
+import com.spfwproject.quotes.entities.UserDBO;
+import com.spfwproject.quotes.models.SignUpFormRequest;
+import com.spfwproject.quotes.validators.SignUpFormValidator;
+
 
 @Component
 public class AuthenticationService implements AuthenticationProvider {
 	private Logger logger = LoggerFactory.getLogger(AuthenticationService.class);
 
 	private static final Random RANDOM = new SecureRandom();
-	private static final int ITERATIONS = 1;
+	private static final int ITERATIONS = 1; // TODO: decide on value, was 1000
     private static final int KEY_LENGTH = 256;
 
 
@@ -72,9 +78,34 @@ public class AuthenticationService implements AuthenticationProvider {
 	}
 		
 	//TODO: fill in validation signup form
-	public boolean validateSignupForm() {
-		return true;
+	public SignUpFormValidator validateSignupForm(SignUpFormRequest signupForm) {
+		SignUpFormValidator signUpFormValidator = new SignUpFormValidator(signupForm);		
+		signUpFormValidator.validate();
+		
+		return signUpFormValidator;
 	}
+	
+	// Password must contain at least one uppercase character, lower case character, special character, and be between 10 to 20 characters long
+	private boolean validatePassword(String password) {
+		Pattern pattern = Pattern.compile("^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#&()–[{}]:;',?/*~$^+=<>]).{10,20}$");
+	    Matcher matcher = pattern.matcher(password);
+	    boolean isMatchFound = matcher.find();
+	    
+	    return isMatchFound;
+	}
+	
+	public UserDBO convertSignupFormToUserEntity(SignUpFormRequest signupForm) {
+		UserDBO user = new UserDBO();
+		char[] passwordAsCharArray = signupForm.getPassword().toCharArray();
+    	ArrayList<byte[]> passwordAndHash = generatePasswordHashWithSalt(passwordAsCharArray);
+    	
+    	logger.info("done generating hashed password and salt");
+    	user.setHashedPassword(passwordAndHash.get(0)); // obtains and sets the hashed password
+    	user.setSalt(passwordAndHash.get(1)); // obtains and sets the salt
+
+		 return user;
+	}
+	
 
 	@Override
 	public Authentication authenticate(Authentication authentication) throws AuthenticationException {
@@ -88,5 +119,6 @@ public class AuthenticationService implements AuthenticationProvider {
 		// TODO Auto-generated method stub
 		// fill in from https://www.tutorialspoint.com/spring_security/spring_security_form_login_with_database.htm#
 		return false;
-	}
+	}	
+	
 }

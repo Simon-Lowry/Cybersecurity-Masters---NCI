@@ -9,12 +9,17 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.spfwproject.quotes.entities.User;
+import com.spfwproject.quotes.entities.UserDBO;
+import com.spfwproject.quotes.models.SignUpFormRequest;
+import com.spfwproject.quotes.models.UserResponse;
 import com.spfwproject.quotes.services.AuthenticationService;
 import com.spfwproject.quotes.services.UserService;
+import com.spfwproject.quotes.validators.SignUpFormValidator;
 
 @RestController
 @RequestMapping("/auth")
@@ -32,34 +37,32 @@ public class AuthenticationController {
         this.userService = userService;
     }
         
-    @GetMapping("/signup")
-    public ResponseEntity signUp() throws URISyntaxException {
-    	User savedUser = new User(5L, "George Billiard", "something@gmail.com", null, null, false);
-    
-    	String password = "myPassword";
-		char[] passwordAsCharArray = password.toCharArray();
-
-    	ArrayList<byte[]> passwordAndHash = 
-    			authenticationService.generatePasswordHashWithSalt(passwordAsCharArray);
+    @PostMapping("/signUp")
+    public ResponseEntity signUp(@RequestBody SignUpFormRequest signupForm) throws URISyntaxException {
+    	SignUpFormValidator signUpFormValidator  = authenticationService.validateSignupForm(signupForm);
     	
-    	logger.info("done generating password");
-    	savedUser.setHashedPassword(passwordAndHash.get(0));
-    	savedUser.setSalt(passwordAndHash.get(1));
-
-    	userService.createUser(savedUser);
-    	
-    	boolean isExpectedPassword = authenticationService.isExpectedPassword(
-    			passwordAsCharArray, passwordAndHash.get(1), passwordAndHash.get(0));
-    	logger.info("Expected password with legit password: " + isExpectedPassword);
-
-    	
-    	char[] fakePasswordArray = {'a', 'b', 'c', 'd', 'e'};  
-    	isExpectedPassword =  authenticationService.isExpectedPassword(
-    			fakePasswordArray, passwordAndHash.get(1), passwordAndHash.get(0));
-    	logger.info("Expected password with NOT legit password: " + isExpectedPassword);
-
-        ResponseEntity response = ResponseEntity.created(new URI("/signup/" + savedUser.getId())).body(savedUser);
-        return response;
+		ResponseEntity response = null;
+		if (!signUpFormValidator.containsErrors()) { // if form validation was a success, continue with user creation
+			UserDBO userToCreate = signupForm.convertSignUpFormToUserEntity();
+			
+			char[] passwordAsCharArray = signupForm.getPassword().toCharArray();
+	    	ArrayList<byte[]> passwordAndHash = authenticationService.generatePasswordHashWithSalt(passwordAsCharArray);
+	    	
+	    	userToCreate.setHashedPassword(passwordAndHash.get(0));
+	    	userToCreate.setSalt(passwordAndHash.get(1));
+	    	userService.createUser(userToCreate);
+	
+	    	UserResponse userResponse = userToCreate.convertUserEntityToUserResponse();
+	    	// TODO: generate session and return in response
+	    	// TODO: generate token and return in response
+	    	// TODO: transaction id and return in response & increase logs with these details in them
+	    	// TODO: XSRF with spring security
+	    	logger.info("User created successfully, response data: " + userResponse.toString());
+	        response = ResponseEntity.created(new URI("/signUp/" + userToCreate.getId())).body(userResponse);        
+		} else {
+			response = response.badRequest().body(signUpFormValidator.getListOfErrors());
+		}
+		return response;
     }
     
 }

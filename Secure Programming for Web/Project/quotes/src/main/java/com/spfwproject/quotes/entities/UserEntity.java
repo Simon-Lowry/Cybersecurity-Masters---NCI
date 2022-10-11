@@ -12,7 +12,7 @@ import com.spfwproject.quotes.models.UserResponse;
 
 @Entity
 @Table(name = "Users")
-public class UserDBO {
+public class UserEntity {
 
 	@Id
 	@GeneratedValue
@@ -28,9 +28,9 @@ public class UserDBO {
 	@Column(name = "account_locked")
 	private boolean accountLocked;
 
-	public UserDBO() {};
+	public UserEntity() {};
 
-	public UserDBO(Long id, String name, String email, byte[] hashedPassword, byte[] salt, boolean accountLocked, String city, String country ) {
+	public UserEntity(Long id, String name, String email, byte[] hashedPassword, byte[] salt, boolean accountLocked, String city, String country ) {
 		this.id = id;
 		this.name = name;
 		this.email = email;

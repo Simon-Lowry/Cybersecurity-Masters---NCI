@@ -13,8 +13,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import com.spfwproject.quotes.entities.UserDBO;
+import com.spfwproject.quotes.entities.UserEntity;
+import com.spfwproject.quotes.models.LoginRequest;
 import com.spfwproject.quotes.models.SignUpFormRequest;
 import com.spfwproject.quotes.models.UserResponse;
 import com.spfwproject.quotes.services.AuthenticationService;
@@ -43,7 +43,7 @@ public class AuthenticationController {
     	
 		ResponseEntity response = null;
 		if (!signUpFormValidator.containsErrors()) { // if form validation was a success, continue with user creation
-			UserDBO userToCreate = signupForm.convertSignUpFormToUserEntity();
+			UserEntity userToCreate = signupForm.convertSignUpFormToUserEntity();
 			
 			char[] passwordAsCharArray = signupForm.getPassword().toCharArray();
 	    	ArrayList<byte[]> passwordAndHash = authenticationService.generatePasswordHashWithSalt(passwordAsCharArray);
@@ -62,6 +62,14 @@ public class AuthenticationController {
 		} else {
 			response = response.badRequest().body(signUpFormValidator.getListOfErrors());
 		}
+		return response;
+    }
+    
+    @PostMapping("perform_login")
+    public ResponseEntity performLogin(LoginRequest loginRequest) {
+		ResponseEntity response = null;
+		
+		
 		return response;
     }
     

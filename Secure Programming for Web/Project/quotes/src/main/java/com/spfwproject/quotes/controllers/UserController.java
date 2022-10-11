@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.spfwproject.quotes.entities.UserDBO;
+import com.spfwproject.quotes.entities.UserEntity;
 import com.spfwproject.quotes.services.UserService;
 
 @RestController
@@ -32,11 +32,11 @@ public class UserController {
     }
 
     @GetMapping
-    public List<UserDBO> getUsers() {
+    public List<UserEntity> getUsers() {
     	final String methodName = "getUsers";
     	logger.info("Entered " + methodName);
     	
-    	List<UserDBO> allusers =  userService.getUsers();
+    	List<UserEntity> allusers =  userService.getUsers();
     	
     	logger.info("Exiting method " + methodName + "." );
     	return allusers;
@@ -44,13 +44,13 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public UserDBO getUser(@PathVariable Long id) {
+    public UserEntity getUser(@PathVariable Long id) {
     	final String methodName = "getUser";
     	logger.info("Entered " + methodName + ", retrieving user with id: " + id);
     	
     	// TODO: is user making request authenticated
     	// TODO: is user authorized to retrieve given user's information
-    	UserDBO user = userService.getUser(id);
+    	UserEntity user = userService.getUser(id);
     	 
     	logger.info("Exiting method " + methodName + "." );
         return user;
@@ -59,11 +59,11 @@ public class UserController {
     
     //TODO: Delete this when further along.
     @PostMapping
-    public ResponseEntity createUser(@RequestBody UserDBO user) throws URISyntaxException {
+    public ResponseEntity createUser(@RequestBody UserEntity user) throws URISyntaxException {
     	final String methodName = "createUser";
     	logger.info("Entered " + methodName);
         
-    	UserDBO saveduser = userService.createUser(user);
+    	UserEntity saveduser = userService.createUser(user);
         ResponseEntity response = ResponseEntity.created(new URI("/users/" + saveduser.getId())).body(saveduser);
         
         logger.info("Exiting method " + methodName + "." );
@@ -71,11 +71,11 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity updateUser(@PathVariable Long id, @RequestBody UserDBO user) {
+    public ResponseEntity updateUser(@PathVariable Long id, @RequestBody UserEntity user) throws URISyntaxException {
     	final String methodName = "updateUser";
     	logger.info("Entered " + methodName);
        
-    	UserDBO updatedUser = userService.updateUser(id, user);
+    	UserEntity updatedUser = userService.updateUser(id, user);
         ResponseEntity response = ResponseEntity.ok(user);
        
         logger.info("Exiting method " + methodName + "." );

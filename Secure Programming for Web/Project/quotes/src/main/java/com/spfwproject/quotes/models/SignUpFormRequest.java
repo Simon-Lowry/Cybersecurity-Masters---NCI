@@ -1,6 +1,6 @@
 package com.spfwproject.quotes.models;
 
-import com.spfwproject.quotes.entities.UserDBO;
+import com.spfwproject.quotes.entities.UserEntity;
 
 public class SignUpFormRequest {
 	private String name;
@@ -68,8 +68,8 @@ public class SignUpFormRequest {
 		this.country = country;
 	}
 	
-	public UserDBO convertSignUpFormToUserEntity() {
-		return new UserDBO(null, getName(), getEmail(), null, null, false, getCity(), getCountry());	
+	public UserEntity convertSignUpFormToUserEntity() {
+		return new UserEntity(null, getName(), getEmail(), null, null, false, getCity(), getCountry());	
 	}
 
 	@Override

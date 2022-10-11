@@ -19,7 +19,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Component;
 
-import com.spfwproject.quotes.entities.UserDBO;
+import com.spfwproject.quotes.entities.UserEntity;
 import com.spfwproject.quotes.models.SignUpFormRequest;
 import com.spfwproject.quotes.validators.SignUpFormValidator;
 
@@ -94,8 +94,8 @@ public class AuthenticationService implements AuthenticationProvider {
 	    return isMatchFound;
 	}
 	
-	public UserDBO convertSignupFormToUserEntity(SignUpFormRequest signupForm) {
-		UserDBO user = new UserDBO();
+	public UserEntity convertSignupFormToUserEntity(SignUpFormRequest signupForm) {
+		UserEntity user = new UserEntity();
 		char[] passwordAsCharArray = signupForm.getPassword().toCharArray();
     	ArrayList<byte[]> passwordAndHash = generatePasswordHashWithSalt(passwordAsCharArray);
     	

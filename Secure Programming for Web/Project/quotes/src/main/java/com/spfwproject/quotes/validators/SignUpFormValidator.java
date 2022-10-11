@@ -6,7 +6,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.spfwproject.quotes.entities.UserDBO;
+import com.spfwproject.quotes.entities.UserEntity;
 import com.spfwproject.quotes.models.SignUpFormRequest;
 import com.spfwproject.quotes.utils.Utils;
 
@@ -43,9 +43,10 @@ public class SignUpFormValidator extends Validator {
 			);
 		}
 
+		//TODO: check username does not already exist!!
 		if (!validateEmailAddress(email)) {
 			addErrorMessageToErrorList("Invalid email address.");
-		}
+		}		
 
 		if (!isInListOfAcceptedSignupCountries(country)) {
 			addErrorMessageToErrorList("Invalid country input.");
@@ -106,13 +107,10 @@ public class SignUpFormValidator extends Validator {
 	// https://mkyong.com/regular-expressions/how-to-validate-email-address-with-regular-expression/
 	private boolean validateEmailAddress(String emailAddress) {
 		Pattern pattern = Pattern.compile(
-				"^(?=.{1,64}@)[A-Za-z0-9_-]+(\\\\.[A-Za-z0-9_-]+)*@[^-][A-Za-z0-9-]+(\\\\.[A-Za-z0-9-]+)*(\\\\.[A-Za-z]{2,})$");
+				"^(?=.{1,64}@)[A-Za-z0-9_-]+(\\.[A-Za-z0-9_-]+)*@[^-][A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)*(\\.[A-Za-z]{2,})$");
 		Matcher matcher = pattern.matcher(emailAddress);
 		boolean isMatchFound = matcher.find();
 		
-		
-		//TODO: check username does not already exist!!
-
 		return isMatchFound;
 	}
 
@@ -144,8 +142,8 @@ public class SignUpFormValidator extends Validator {
 		return isMatchFound;
 	}
 
-	public UserDBO convertSignupFormContentToUserEntity(SignUpFormRequest signupForm) {
-		return new UserDBO();
+	public UserEntity convertSignupFormContentToUserEntity(SignUpFormRequest signupForm) {
+		return new UserEntity();
 	}
 
 }

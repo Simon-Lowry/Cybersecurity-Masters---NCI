@@ -14,6 +14,11 @@ public class SignUpFormValidator extends Validator {
 	private Logger logger = LoggerFactory.getLogger(SignUpFormValidator.class);
 
 	private SignUpFormRequest signupForm;
+	
+	public final static String PASSWORD_REPEAT_ERROR = "Passwords must match";
+	public final static String PASSWORD_CONTENT_ERROR = "Password must contain at least one uppercase character, "
+			+ "lower case character, special character, and be between 10 to 20 "
+			+ "characters long.\nApostrophes, hashes and hyphens are not allowed.";
 
 	public SignUpFormValidator(SignUpFormRequest signupForm) {
 		this.signupForm = signupForm;
@@ -34,12 +39,12 @@ public class SignUpFormValidator extends Validator {
 		}
 
 		if (!password.equals(passwordRepeat)) {
-			addErrorMessageToErrorList("Passwords must match.");
+			addErrorMessageToErrorList(PASSWORD_REPEAT_ERROR);
 		}
 
 		if (!validatePassword(password)) {
 			addErrorMessageToErrorList(
-					"Password must contain at least one uppercase character, lower case character, special character, and be between 10 to 20 characters long."
+					PASSWORD_CONTENT_ERROR
 			);
 		}
 

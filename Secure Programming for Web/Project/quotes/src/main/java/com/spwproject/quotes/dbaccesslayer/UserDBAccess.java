@@ -3,29 +3,39 @@ package com.spwproject.quotes.dbaccesslayer;
 import java.net.URISyntaxException;
 import java.util.List;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import com.spfwproject.quotes.entities.UserEntity;
+import com.spfwproject.quotes.interfaces.IUserRepository;
 import com.spfwproject.quotes.repositories.UserRepository;
 
-public class UserDBAccess {
+
+@Repository
+public class UserDBAccess implements IUserRepository{
 	private Logger logger = LoggerFactory.getLogger(UserDBAccess.class);
+	
+	@PersistenceContext
+	private EntityManager entityManager;
 
-	private final UserRepository userRepository;
-
-	public UserDBAccess(UserRepository userRepository) {
-		this.userRepository = userRepository;
-	}
-
+	/*
+	@Override
 	public List<UserEntity> getAllUsers() {
 		List<UserEntity> allUsers = userRepository.findAll();
 		return allUsers;
 	}
+	
 
-	public UserEntity getUser(@PathVariable Long id) {
+	@Override
+	public UserEntity getUser(Long id) {
 		final String methodName = "getUser";
 		logger.info("Entered " + methodName + ", retrieving user with id: " + id);
 
@@ -35,7 +45,8 @@ public class UserDBAccess {
 		return user;
 	}
 
-	public UserEntity createUser(@RequestBody UserEntity user) throws URISyntaxException {
+	@Override
+	public UserEntity createUser( UserEntity user) {
 		final String methodName = "createUser";
 		logger.info("Entered " + methodName);
 
@@ -45,7 +56,8 @@ public class UserDBAccess {
 		return createdUser;
 	}
 
-	public UserEntity updateUser(@PathVariable Long id, @RequestBody UserEntity user) {
+	@Override
+	public UserEntity updateUser( Long id,  UserEntity user) {
 		final String methodName = "updateUser";
 		logger.info("Entered " + methodName);
 
@@ -58,7 +70,8 @@ public class UserDBAccess {
 		return userToBeUpdated;
 	}
 
-	public boolean deleteUser(@PathVariable Long id) {
+	@Override
+	public boolean deleteUser( Long id) {
 		final String methodName = "deleteUser";
 		logger.info("Entered " + methodName);
 
@@ -67,5 +80,6 @@ public class UserDBAccess {
 		logger.info("Exiting method " + methodName + ".");
 		return true;
 	}
+	*/
 
 }

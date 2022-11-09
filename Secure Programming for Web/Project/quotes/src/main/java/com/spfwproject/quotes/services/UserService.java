@@ -5,20 +5,22 @@ import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
 import com.spfwproject.quotes.entities.UserEntity;
+import com.spfwproject.quotes.interfaces.IUserRepository;
+import com.spfwproject.quotes.repositories.UserRepository;
 import com.spwproject.quotes.dbaccesslayer.UserDBAccess;
 
 
 @Component
 public class UserService {
-	 private final UserDBAccess userDBAccess;
+	 @Autowired
+	 private final UserRepository userDBAccess;
 	    
 	 private Logger logger = LoggerFactory.getLogger(UserService.class);
 
-	 public UserService(UserDBAccess userDBAccess) {
+	 public UserService(UserRepository userDBAccess) {
 		 this.userDBAccess = userDBAccess;
 	 }
 
@@ -26,51 +28,51 @@ public class UserService {
 		final String methodName = "getUsers";
 		logger.info("Entered " + methodName);
 
-		List<UserEntity> allusers = userDBAccess.getAllUsers();
+		List<UserEntity> allusers = userDBAccess.findAll();
 
 		logger.info("Exiting method " + methodName + ".");
 		return allusers;
 
 	}
 
-	public UserEntity getUser(@PathVariable Long id) {
+	public UserEntity getUser(Long id) {
 		final String methodName = "getUser";
 		logger.info("Entered " + methodName + ", retrieving user with id: " + id);
 
-		UserEntity user = userDBAccess.getUser(id);
+		UserEntity user = userDBAccess.findById(id).orElseThrow(RuntimeException::new);
 
 		logger.info("Exiting method " + methodName + ".");
 		return user;
 	}
 
-	public UserEntity createUser(@RequestBody UserEntity user) throws URISyntaxException {
+	public UserEntity createUser( UserEntity user) throws URISyntaxException {
 		final String methodName = "createUser";
 		logger.info("Entered " + methodName);
 
-		UserEntity createdUser = userDBAccess.createUser(user);
+		UserEntity createdUser = userDBAccess.save(user);
 
 		logger.info("Exiting method " + methodName + ".");
 		return createdUser;
 	}
 
-	public UserEntity updateUser(@PathVariable Long id, @RequestBody UserEntity user) throws URISyntaxException {
+	public UserEntity updateUser(Long id, UserEntity user) throws URISyntaxException {
 		final String methodName = "updateUser";
 		logger.info("Entered " + methodName);
 
-		UserEntity userToBeUpdated = userDBAccess.getUser(id);
+		UserEntity userToBeUpdated = userDBAccess.findById(id).orElseThrow(RuntimeException::new);
 		userToBeUpdated.setName(user.getName());
 		userToBeUpdated.setEmail(user.getEmail());
-		userToBeUpdated = userDBAccess.createUser(user);
+		userToBeUpdated = userDBAccess.save(user);
 
 		logger.info("Exiting method " + methodName + ".");
 		return userToBeUpdated;
 	}
 
-	public boolean deleteUser(@PathVariable Long id) {
+	public boolean deleteUser(Long id) {
 		final String methodName = "deleteUser";
 		logger.info("Entered " + methodName);
 
-		userDBAccess.deleteUser(id);
+		userDBAccess.deleteById(id);
 
 		logger.info("Exiting method " + methodName + ".");
 		return true;

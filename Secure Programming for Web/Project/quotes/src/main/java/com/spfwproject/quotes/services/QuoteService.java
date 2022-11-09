@@ -34,7 +34,7 @@ public class QuoteService {
 
 	}
 
-	public QuoteEntity getQuote(@PathVariable Long id) {
+	public QuoteEntity getQuote( Long id) {
 		final String methodName = "getQuote";
 		logger.info("Entered " + methodName + ", retrieving Quote with id: " + id);
 
@@ -45,7 +45,7 @@ public class QuoteService {
 	}
 
 	@PostMapping
-	public QuoteEntity createQuote(@RequestBody QuoteEntity Quote) throws URISyntaxException {
+	public QuoteEntity createQuote( QuoteEntity Quote) throws URISyntaxException {
 		final String methodName = "createQuote";
 		logger.info("Entered " + methodName);
 
@@ -55,7 +55,7 @@ public class QuoteService {
 		return createdQuote;
 	}
 
-	public QuoteEntity updateQuote(@PathVariable Long id, @RequestBody QuoteEntity quote) {
+	public QuoteEntity updateQuote( Long id, QuoteEntity quote) {
 		final String methodName = "updateQuote";
 		logger.info("Entered " + methodName);
 
@@ -68,7 +68,7 @@ public class QuoteService {
 		return quoteToBeUpdated;
 	}
 
-	public boolean deleteQuote(@PathVariable Long id) {
+	public boolean deleteQuote( Long id) {
 		final String methodName = "deleteQuote";
 		logger.info("Entered " + methodName);
 

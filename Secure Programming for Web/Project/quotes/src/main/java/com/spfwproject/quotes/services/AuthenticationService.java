@@ -67,12 +67,18 @@ public class AuthenticationService implements AuthenticationProvider {
 		}
 	}
 	
-	public boolean isExpectedPassword(char[] password, byte[] salt, byte[] expectedHash) {
+	public boolean isExpectedPassword(char[] password, byte[] salt, byte[] expectedPasswordHash) {
 		    byte[] pwdHash = generatePasswordWithPDKDF2(password, salt);
 		    Arrays.fill(password, Character.MIN_VALUE);
-		    if (pwdHash.length != expectedHash.length) return false;
+		   
+		    if (pwdHash.length != expectedPasswordHash.length) {
+		    	return false;
+		    }
+		    
 		    for (int i = 0; i < pwdHash.length; i++) {
-		      if (pwdHash[i] != expectedHash[i]) return false;
+		      if (pwdHash[i] != expectedPasswordHash[i]) {
+		    	  return false;
+		      }
 		    }
 		    return true;
 	}
@@ -86,8 +92,9 @@ public class AuthenticationService implements AuthenticationProvider {
 	}
 	
 	// Password must contain at least one uppercase character, lower case character, special character, and be between 10 to 20 characters long
+	// characters hyphen, apostrophe and hash (', -, #) are not allowed to protect against attacks
 	private boolean validatePassword(String password) {
-		Pattern pattern = Pattern.compile("^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#&()–[{}]:;',?/*~$^+=<>]).{10,20}$");
+		Pattern pattern = Pattern.compile("^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#&()[{}]:;,?/*~$^+=<>]).{10,20}$");
 	    Matcher matcher = pattern.matcher(password);
 	    boolean isMatchFound = matcher.find();
 	    

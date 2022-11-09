@@ -24,4 +24,19 @@ public abstract class Validator {
 		
 		listOfErrorsMessages.add(errorMessage);	
 	}
+	
+	public String toString() {
+		String errorListMessage = "";
+		
+		if (containsErrors) {
+			int count = 0;
+			for (String error : listOfErrorsMessages) {
+				errorListMessage += (count + 1) + ": " + error;
+			}
+			
+			return errorListMessage;
+		} else {
+			return null;
+		}
+	}
 }

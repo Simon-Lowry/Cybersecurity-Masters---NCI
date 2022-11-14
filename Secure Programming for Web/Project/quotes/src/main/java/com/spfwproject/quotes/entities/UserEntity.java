@@ -1,6 +1,6 @@
 package com.spfwproject.quotes.entities;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -8,33 +8,46 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.User;
+
 import com.spfwproject.quotes.models.UserResponse;
 
 @Entity
 @Table(name = "Users")
-public class UserEntity {
+public class UserEntity extends User {
+	private static final long serialVersionUID = 1L;
 
 	@Id
 	@GeneratedValue
 	private Long id;
 
 	private String name;
-	private String email;
+
+	@Column(name = "username")
+	private String username;
+
 	private String city;
 	private String country;
-	private byte[] hashedPassword;
-	private byte[] salt;
-	
+
+	@Column(name = "hashed_password")
+	private String password;
+	private String salt;
+
 	@Column(name = "account_locked")
 	private boolean accountLocked;
 
-	public UserEntity() {};
+	public UserEntity() {
+		super("temp", "temp", true, false, false, false, new ArrayList<GrantedAuthority>());
+	}
 
-	public UserEntity(Long id, String name, String email, byte[] hashedPassword, byte[] salt, boolean accountLocked, String city, String country ) {
+	public UserEntity(Long id, String name, String username, String password, String salt, boolean accountLocked,
+			String city, String country) {
+		super(username, password, true, false, false, !accountLocked, new ArrayList<GrantedAuthority>());
 		this.id = id;
 		this.name = name;
-		this.email = email;
-		this.hashedPassword = hashedPassword;
+		this.username = username;
+		this.password = password;
 		this.salt = salt;
 		this.accountLocked = accountLocked;
 		this.city = city;
@@ -57,27 +70,27 @@ public class UserEntity {
 		this.name = name;
 	}
 
-	public String getEmail() {
-		return email;
+	public String getUsername() {
+		return username;
 	}
 
-	public void setEmail(String email) {
-		this.email = email;
+	public void setUsername(String username) {
+		this.username = username;
 	}
 
-	public byte[] getHashedPassword() {
-		return hashedPassword;
+	public String getPassword() {
+		return password;
 	}
 
-	public void setHashedPassword(byte[] hashedPassword) {
-		this.hashedPassword = hashedPassword;
+	public void setPassword(String hashedPassword) {
+		this.password = hashedPassword;
 	}
 
-	public byte[] getSalt() {
+	public String getSalt() {
 		return salt;
 	}
 
-	public void setSalt(byte[] salt) {
+	public void setSalt(String salt) {
 		this.salt = salt;
 	}
 
@@ -104,15 +117,15 @@ public class UserEntity {
 	public void setCountry(String country) {
 		this.country = country;
 	}
-	
+
 	public UserResponse convertUserEntityToUserResponse() {
-		return new UserResponse(getId(), getName(), getEmail(), getCity(), getCountry());
+		return new UserResponse(getId(), getName(), getUsername(), getCity(), getCountry());
 	}
-	
+
 	@Override
 	public String toString() {
-		return "User [id=" + id + ", name=" + name + ", email=" + email + ", city=" + city + ", country=" + country
-				+ ", hashedPassword=" + Arrays.toString(hashedPassword) + ", salt=" + Arrays.toString(salt)
-				+ ", accountLocked=" + accountLocked + "]";
+		return "User [id=" + id + ", name=" + name + ", username=" + username + ", city=" + city + ", country="
+				+ country + ", hashedPassword=" + password + ", salt=" + salt + ", accountLocked=" + accountLocked
+				+ "]";
 	}
 }

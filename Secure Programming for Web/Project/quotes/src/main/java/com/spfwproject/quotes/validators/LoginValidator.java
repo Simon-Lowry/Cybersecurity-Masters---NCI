@@ -21,7 +21,7 @@ public class LoginValidator extends Validator {
 
 	@Override
 	public void validate() {
-		final String email = loginRequest.getEmail();
+		final String email = loginRequest.getUsername();
 		final String password = loginRequest.getPassword();
 
 		if (formContainsNullOrEmptyEntries()) {
@@ -35,7 +35,7 @@ public class LoginValidator extends Validator {
 	}
 
 	private boolean formContainsNullOrEmptyEntries() {
-		final String email = loginRequest.getEmail();
+		final String email = loginRequest.getUsername();
 		final String password = loginRequest.getPassword();
 
 		if (Utils.isNullOrEmpty(email) || Utils.isNullOrEmpty(password)) {

@@ -1,12 +1,12 @@
 package com.spfwproject.quotes.validators;
 
-import java.util.ArrayList;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.spfwproject.quotes.entities.UserEntity;
+
 import com.spfwproject.quotes.models.SignUpFormRequest;
 import com.spfwproject.quotes.utils.Utils;
 
@@ -14,11 +14,11 @@ public class SignUpFormValidator extends Validator {
 	private Logger logger = LoggerFactory.getLogger(SignUpFormValidator.class);
 
 	private SignUpFormRequest signupForm;
-	
-	public final static String PASSWORD_REPEAT_ERROR = "Passwords must match";
+
+	public final static String PASSWORD_REPEAT_ERROR = "Passwords must match.";
 	public final static String PASSWORD_CONTENT_ERROR = "Password must contain at least one uppercase character, "
 			+ "lower case character, special character, and be between 10 to 20 "
-			+ "characters long.\nApostrophes, hashes and hyphens are not allowed.";
+			+ "characters long. Apostrophes, hashes and hyphens are not allowed.";
 
 	public SignUpFormValidator(SignUpFormRequest signupForm) {
 		this.signupForm = signupForm;
@@ -28,12 +28,12 @@ public class SignUpFormValidator extends Validator {
 	public void validate() {
 		String password = signupForm.getPassword();
 		String passwordRepeat = signupForm.getPasswordRepeated();
-		String email = signupForm.getEmail();
+		String username = signupForm.getUsername();
 		String country = signupForm.getCountry();
 		String city = signupForm.getCity();
-		
+
 		logger.info(signupForm.toString());
-		
+
 		if (formContainsNullOrEmptyEntries()) {
 			return;
 		}
@@ -43,51 +43,48 @@ public class SignUpFormValidator extends Validator {
 		}
 
 		if (!validatePassword(password)) {
-			addErrorMessageToErrorList(
-					PASSWORD_CONTENT_ERROR
-			);
+			addErrorMessageToErrorList(PASSWORD_CONTENT_ERROR);
 		}
 
-		//TODO: check username does not already exist!!
-		if (!validateEmailAddress(email)) {
-			addErrorMessageToErrorList("Invalid email address.");
-		}		
+		if (!validateEmailAddress(username)) {
+			addErrorMessageToErrorList("Invalid username.");
+		}
 
 		if (!isInListOfAcceptedSignupCountries(country)) {
 			addErrorMessageToErrorList("Invalid country input.");
 		}
-		
+
 		if (!isValidCity(city)) {
-			addErrorMessageToErrorList("Invalid city. Cities can only have alphabetic characters, hyphens and apostrophes. First character of each word must be uppercase");
+			addErrorMessageToErrorList(
+					"Invalid city. Cities can only have alphabetic characters, hyphens and apostrophes. First character of each word must be uppercase");
 		}
 	}
 
-	
-	private boolean formContainsNullOrEmptyEntries() {	
+	private boolean formContainsNullOrEmptyEntries() {
 		if (Utils.isNullOrEmpty(signupForm.getName())) {
 			addErrorMessageToErrorList("Name must contain a value");
 		}
-		
+
 		if (Utils.isNullOrEmpty(signupForm.getCity())) {
 			addErrorMessageToErrorList("City must contain a value");
 		}
-		
+
 		if (Utils.isNullOrEmpty(signupForm.getCountry())) {
 			addErrorMessageToErrorList("Country must contain a value");
-		}	
-		
-		if (Utils.isNullOrEmpty(signupForm.getEmail())) {
-			addErrorMessageToErrorList("Email must contain a value");
 		}
-		
+
+		if (Utils.isNullOrEmpty(signupForm.getUsername())) {
+			addErrorMessageToErrorList("Username must contain a value");
+		}
+
 		if (Utils.isNullOrEmpty(signupForm.getPassword())) {
 			addErrorMessageToErrorList("Password must contain a value");
 		}
-		
+
 		if (Utils.isNullOrEmpty(signupForm.getPasswordRepeated())) {
 			addErrorMessageToErrorList("Password repeated entry must contain a value");
 		}
-		
+
 		return containsErrors();
 	}
 
@@ -115,7 +112,7 @@ public class SignUpFormValidator extends Validator {
 				"^(?=.{1,64}@)[A-Za-z0-9_-]+(\\.[A-Za-z0-9_-]+)*@[^-][A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)*(\\.[A-Za-z]{2,})$");
 		Matcher matcher = pattern.matcher(emailAddress);
 		boolean isMatchFound = matcher.find();
-		
+
 		return isMatchFound;
 	}
 
@@ -131,24 +128,21 @@ public class SignUpFormValidator extends Validator {
 			}
 
 		}
-		
+
 		return false;
 	}
 
-	// covers alpha only, double barrel (Bora-Bora), spaced city names and city names with apostrophes.
-	// no longer than 20 characters, first character must be an uppercase letter, an apostrophe is optional after first letter of any word,
+	// covers alpha only, double barrel (Bora-Bora), spaced city names and city
+	// names with apostrophes.
+	// no longer than 20 characters, first character must be an uppercase letter, an
+	// apostrophe is optional after first letter of any word,
 	// followed by one or more alpha character
 	private boolean isValidCity(String city) {
-		Pattern pattern = Pattern.compile(
-				"(?=.{2,20}$)^([A-Z])(')?([a-z]+)((\\-|\\s)[A-Z](')?[a-z]+)*$");
+		Pattern pattern = Pattern.compile("(?=.{2,20}$)^([A-Z])(')?([a-z]+)((\\-|\\s)[A-Z](')?[a-z]+)*$");
 		Matcher matcher = pattern.matcher(city);
 		boolean isMatchFound = matcher.find();
-		
-		return isMatchFound;
-	}
 
-	public UserEntity convertSignupFormContentToUserEntity(SignUpFormRequest signupForm) {
-		return new UserEntity();
+		return isMatchFound;
 	}
 
 }

@@ -1,2 +1,3 @@
-# Ignore application property file
-src/main/resources/application.properties
+# Ignore application property file & key
+quotes/src/main/resources/application.properties
+quotes/src/main/resources/keystore.p12

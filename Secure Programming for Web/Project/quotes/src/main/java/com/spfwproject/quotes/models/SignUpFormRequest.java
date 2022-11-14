@@ -4,16 +4,16 @@ import com.spfwproject.quotes.entities.UserEntity;
 
 public class SignUpFormRequest {
 	private String name;
-	private String email;
+	private String username;
 	private String password;
 	private String passwordRepeated;
 	private String city;
 	private String country;
-	
-	public SignUpFormRequest(String name, String email, String password, String passwordRepeated, String city,
+
+	public SignUpFormRequest(String name, String username, String password, String passwordRepeated, String city,
 			String country) {
 		this.name = name;
-		this.email = email;
+		this.username = username;
 		this.password = password;
 		this.passwordRepeated = passwordRepeated;
 		this.city = city;
@@ -28,12 +28,12 @@ public class SignUpFormRequest {
 		this.name = name;
 	}
 
-	public String getEmail() {
-		return email;
+	public String getUsername() {
+		return username;
 	}
 
-	public void setEmail(String email) {
-		this.email = email;
+	public void setUsername(String username) {
+		this.username = username;
 	}
 
 	public String getPassword() {
@@ -67,14 +67,14 @@ public class SignUpFormRequest {
 	public void setCountry(String country) {
 		this.country = country;
 	}
-	
-	public UserEntity convertSignUpFormToUserEntity() {
-		return new UserEntity(null, getName(), getEmail(), null, null, false, getCity(), getCountry());	
+
+	public UserEntity convertSignUpFormToUserEntity(String password, String salt) {
+		return new UserEntity(null, getName(), getUsername(), password, salt, false, getCity(), getCountry());
 	}
 
 	@Override
 	public String toString() {
-		return "SignUpForm [name=" + name + ", email=" + email + ", password=" + password + ", passwordRepeated="
+		return "SignUpForm [name=" + name + ", username=" + username + ", password=" + password + ", passwordRepeated="
 				+ passwordRepeated + ", city=" + city + ", country=" + country + "]";
 	}
 }

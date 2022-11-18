@@ -16,11 +16,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.spfwproject.quotes.entities.UserEntity;
 import com.spfwproject.quotes.models.LoginRequest;
-import com.spfwproject.quotes.models.SignUpFormRequest;
+import com.spfwproject.quotes.models.UserDetailsRequest;
 import com.spfwproject.quotes.models.UserResponse;
 import com.spfwproject.quotes.services.AuthenticationService;
 import com.spfwproject.quotes.services.UserService;
-import com.spfwproject.quotes.validators.SignUpFormValidator;
+import com.spfwproject.quotes.validators.UserDetailsValidator;
 
 @RestController
 @RequestMapping("/auth")
@@ -39,11 +39,11 @@ public class AuthenticationController {
 	}
 
 	@PostMapping("/signUp")
-	public ResponseEntity signUp(@RequestBody SignUpFormRequest signupFormRequest) throws URISyntaxException {
+	public ResponseEntity signUp(@RequestBody UserDetailsRequest signupFormRequest) throws URISyntaxException {
 		final String methodName = "signUp";
 		logger.info("Entered " + methodName);
 
-		SignUpFormValidator signUpFormValidator = authenticationService.validateSignupForm(signupFormRequest);
+		UserDetailsValidator signUpFormValidator = authenticationService.validateSignupForm(signupFormRequest);
 
 		ResponseEntity response = null;
 		if (!signUpFormValidator.containsErrors()) { // if form validation was a success, continue with user creation
@@ -108,7 +108,7 @@ public class AuthenticationController {
 	public ResponseEntity performLogout(LoginRequest loginRequest) {
 		ResponseEntity response = null;
 
-		return response;
+		return (ResponseEntity) response.ok();
 	}
 
 }

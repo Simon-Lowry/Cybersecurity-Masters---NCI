@@ -7,32 +7,33 @@ import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.spfwproject.quotes.models.SignUpFormRequest;
+import com.spfwproject.quotes.entities.UserEntity;
+import com.spfwproject.quotes.models.UserDetailsRequest;
 import com.spfwproject.quotes.utils.Utils;
 
-public class SignUpFormValidator extends Validator {
-	private Logger logger = LoggerFactory.getLogger(SignUpFormValidator.class);
+public class UserDetailsValidator extends Validator {
+	private Logger logger = LoggerFactory.getLogger(UserDetailsValidator.class);
 
-	private SignUpFormRequest signupForm;
+	private UserDetailsRequest userDetails;
 
 	public final static String PASSWORD_REPEAT_ERROR = "Passwords must match.";
 	public final static String PASSWORD_CONTENT_ERROR = "Password must contain at least one uppercase character, "
 			+ "lower case character, special character, and be between 10 to 20 "
 			+ "characters long. Apostrophes, hashes and hyphens are not allowed.";
 
-	public SignUpFormValidator(SignUpFormRequest signupForm) {
-		this.signupForm = signupForm;
+	public UserDetailsValidator(UserDetailsRequest userDetails) {
+		this.userDetails = userDetails;
 	}
 
 	@Override
 	public void validate() {
-		String password = signupForm.getPassword();
-		String passwordRepeat = signupForm.getPasswordRepeated();
-		String username = signupForm.getUsername();
-		String country = signupForm.getCountry();
-		String city = signupForm.getCity();
+		String password = userDetails.getPassword();
+		String passwordRepeat = userDetails.getPasswordRepeated();
+		String username = userDetails.getUsername();
+		String country = userDetails.getCountry();
+		String city = userDetails.getCity();
 
-		logger.info(signupForm.toString());
+		logger.info(userDetails.toString());
 
 		if (formContainsNullOrEmptyEntries()) {
 			return;
@@ -58,30 +59,30 @@ public class SignUpFormValidator extends Validator {
 			addErrorMessageToErrorList(
 					"Invalid city. Cities can only have alphabetic characters, hyphens and apostrophes. First character of each word must be uppercase");
 		}
-	}
-
+	}	
+	
 	private boolean formContainsNullOrEmptyEntries() {
-		if (Utils.isNullOrEmpty(signupForm.getName())) {
+		if (Utils.isNullOrEmpty(userDetails.getName())) {
 			addErrorMessageToErrorList("Name must contain a value");
 		}
 
-		if (Utils.isNullOrEmpty(signupForm.getCity())) {
+		if (Utils.isNullOrEmpty(userDetails.getCity())) {
 			addErrorMessageToErrorList("City must contain a value");
 		}
 
-		if (Utils.isNullOrEmpty(signupForm.getCountry())) {
+		if (Utils.isNullOrEmpty(userDetails.getCountry())) {
 			addErrorMessageToErrorList("Country must contain a value");
 		}
 
-		if (Utils.isNullOrEmpty(signupForm.getUsername())) {
+		if (Utils.isNullOrEmpty(userDetails.getUsername())) {
 			addErrorMessageToErrorList("Username must contain a value");
 		}
 
-		if (Utils.isNullOrEmpty(signupForm.getPassword())) {
+		if (Utils.isNullOrEmpty(userDetails.getPassword())) {
 			addErrorMessageToErrorList("Password must contain a value");
 		}
 
-		if (Utils.isNullOrEmpty(signupForm.getPasswordRepeated())) {
+		if (Utils.isNullOrEmpty(userDetails.getPasswordRepeated())) {
 			addErrorMessageToErrorList("Password repeated entry must contain a value");
 		}
 

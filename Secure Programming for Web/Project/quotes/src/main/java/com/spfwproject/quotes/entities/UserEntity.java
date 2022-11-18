@@ -1,12 +1,9 @@
 package com.spfwproject.quotes.entities;
 
 import java.util.ArrayList;
+import java.util.Collection;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
@@ -36,15 +33,23 @@ public class UserEntity extends User {
 
 	@Column(name = "account_locked")
 	private boolean accountLocked;
+	
+	@ManyToMany 
+    @JoinTable( 
+        name = "users_roles", 
+        joinColumns = @JoinColumn(
+          name = "user_id", referencedColumnName = "id"), 
+        inverseJoinColumns = @JoinColumn(
+          name = "role_id", referencedColumnName = "id")) 
+    private Collection<RoleEntity> roles;
 
 	public UserEntity() {
 		super("temp", "temp", true, false, false, false, new ArrayList<GrantedAuthority>());
 	}
 
-	public UserEntity(Long id, String name, String username, String password, String salt, boolean accountLocked,
+	public UserEntity(String name, String username, String password, String salt, boolean accountLocked,
 			String city, String country) {
 		super(username, password, true, false, false, !accountLocked, new ArrayList<GrantedAuthority>());
-		this.id = id;
 		this.name = name;
 		this.username = username;
 		this.password = password;
@@ -116,6 +121,15 @@ public class UserEntity extends User {
 
 	public void setCountry(String country) {
 		this.country = country;
+	}
+	
+	
+	public Collection<RoleEntity> getRoles() {
+		return roles;
+	}
+
+	public void setRoles(Collection<RoleEntity> roles) {
+		this.roles = roles;
 	}
 
 	public UserResponse convertUserEntityToUserResponse() {

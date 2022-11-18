@@ -13,9 +13,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import com.spfwproject.quotes.models.SignUpFormRequest;
+import com.spfwproject.quotes.models.UserDetailsRequest;
 import com.spfwproject.quotes.services.AuthenticationService;
-import com.spfwproject.quotes.validators.SignUpFormValidator;
+import com.spfwproject.quotes.validators.UserDetailsValidator;
 
 @SpringBootTest
 public class AuthenticationServiceComponentTest {
@@ -27,11 +27,11 @@ public class AuthenticationServiceComponentTest {
 	@Test
 	void testValidateSignupForm() {
 		
-		SignUpFormRequest signUpForm = new SignUpFormRequest("Some Name", "words@email.com", 
+		UserDetailsRequest signUpForm = new UserDetailsRequest("Some Name", "words@email.com", 
 				"Password123*", "Password123*", "Dublin", "Ireland");
 		
 		// valid signup form, expect no errors
-		SignUpFormValidator validator = authenticationService.validateSignupForm(signUpForm);
+		UserDetailsValidator validator = authenticationService.validateSignupForm(signUpForm);
 		logger.info("Expect valid:");
 		logger.info(validator.toString());
 		assertFalse(validator.containsErrors());
@@ -42,9 +42,9 @@ public class AuthenticationServiceComponentTest {
 	}
 	
 	
-	private void assertChecksOnPasswordsForSignupFormValidation(SignUpFormValidator validator, SignUpFormRequest signUpForm) {
-		final String passwordErrorExpected = SignUpFormValidator.PASSWORD_CONTENT_ERROR;
-		final String passwordRepeatError = SignUpFormValidator.PASSWORD_REPEAT_ERROR;
+	private void assertChecksOnPasswordsForSignupFormValidation(UserDetailsValidator validator, UserDetailsRequest signUpForm) {
+		final String passwordErrorExpected = UserDetailsValidator.PASSWORD_CONTENT_ERROR;
+		final String passwordRepeatError = UserDetailsValidator.PASSWORD_REPEAT_ERROR;
 		
 		// use different password, expect error
 		signUpForm.setPasswordRepeated("abc");
@@ -83,7 +83,7 @@ public class AuthenticationServiceComponentTest {
 	    assertTrue(validator.getListOfErrors().contains("Password repeated entry must contain a value"));
 	}
 		
-	private SignUpFormRequest setPasswordAndRepeatPassword(String password, SignUpFormRequest signUpForm) {
+	private UserDetailsRequest setPasswordAndRepeatPassword(String password, UserDetailsRequest signUpForm) {
 		signUpForm.setPassword(password);
 		signUpForm.setPasswordRepeated(password);
 		return signUpForm;
@@ -122,6 +122,6 @@ public class AuthenticationServiceComponentTest {
 		boolean isEqualPassword = authenticationService.isExpectedPassword(passwordAsCharArray, salt, hashedPassword);
 		assertFalse(isEqualPassword);
 		
-		
+	
 	}
 }

@@ -20,8 +20,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.spfwproject.quotes.models.LoginRequest;
-import com.spfwproject.quotes.models.SignUpFormRequest;
-import com.spfwproject.quotes.validators.SignUpFormValidator;
+import com.spfwproject.quotes.models.UserDetailsRequest;
+import com.spfwproject.quotes.validators.UserDetailsValidator;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -33,20 +33,20 @@ public class AuthenticationControllerIntegrationTest {
 	@Autowired
 	private ObjectMapper objectMapper;
 
-	private SignUpFormRequest signUpForm;
+	private UserDetailsRequest signUpForm;
 
 	private Logger logger = LoggerFactory.getLogger(AuthenticationControllerIntegrationTest.class);
 
 	@BeforeEach
 	void setup() {
-		signUpForm = new SignUpFormRequest("My Name", "myemail@mail.com", "Passcword123&%", "Passcword123&%", "Dublin",
+		signUpForm = new UserDetailsRequest("My Name", "myemail@mail.com", "Passcword123&%", "Passcword123&%", "Dublin",
 				"Ireland");
 
 	}
 
 	@Test
 	void testSignup_WithValidSignupData_Success() throws JsonProcessingException, Exception {
-		logger.info("Entered testSignup_WithValidSignupData_Success");
+		logger.info("Entered test: testSignup_WithValidSignupData_Success");
 		signUpForm.setUsername("success" + signUpForm.getUsername());
 		mockMvc.perform(post("/auth/signUp").contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(signUpForm))).andExpect(status().isCreated());
@@ -116,7 +116,7 @@ public class AuthenticationControllerIntegrationTest {
 		String requestResponseBody = expectBadRequestException(signUpForm);
 		requestResponseBody = requestResponseBody.replace("[", "").replace("]", "").replace("\"", "");
 
-		assertEquals(requestResponseBody, SignUpFormValidator.PASSWORD_CONTENT_ERROR);
+		assertEquals(requestResponseBody, UserDetailsValidator.PASSWORD_CONTENT_ERROR);
 	}
 
 	@Test
@@ -127,7 +127,7 @@ public class AuthenticationControllerIntegrationTest {
 		String requestResponseBody = expectBadRequestException(signUpForm);
 		requestResponseBody = requestResponseBody.replace("[", "").replace("]", "").replace("\"", "");
 
-		assertEquals(requestResponseBody, SignUpFormValidator.PASSWORD_REPEAT_ERROR);
+		assertEquals(requestResponseBody, UserDetailsValidator.PASSWORD_REPEAT_ERROR);
 	}
 
 	/*
@@ -171,7 +171,7 @@ public class AuthenticationControllerIntegrationTest {
 		// delete the entry
 	}
 
-	private String expectBadRequestException(SignUpFormRequest signUpForm) throws JsonProcessingException, Exception {
+	private String expectBadRequestException(UserDetailsRequest signUpForm) throws JsonProcessingException, Exception {
 		ResultActions resultActions = mockMvc.perform(post("/auth/signUp").contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(signUpForm))).andExpect(status().isBadRequest());
 		MvcResult result = resultActions.andReturn();

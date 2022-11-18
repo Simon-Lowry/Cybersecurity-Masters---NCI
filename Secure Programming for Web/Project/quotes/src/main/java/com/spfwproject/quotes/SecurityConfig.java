@@ -41,10 +41,19 @@ public class SecurityConfig {
 		http.httpBasic().and().cors().and().csrf().disable().sessionManagement().invalidSessionUrl(LOGIN_URI)
 				.maximumSessions(1).and().sessionFixation().newSession().and().logout().logoutUrl(LOGOUT_URI)
 				.logoutSuccessUrl(LOGIN_URI).deleteCookies(JSESSIONID);
+		
+		http.authorizeRequests()
+		.mvcMatchers("/admin/**").hasRole("ADMIN")
+		.mvcMatchers("/auth/logout").hasRole("USER")
+		.mvcMatchers("/quotes/**").hasRole("USER")
+		.mvcMatchers("/users/**").hasAnyRole("USER")
+		.mvcMatchers("/auth/signUp").hasAnyRole("ANONYMOUS")
 
+		.anyRequest().denyAll(); 
+		
 		return http.build();
 	}
-
+	
 	@Bean
 	public DaoAuthenticationProvider authProvider(UserDBAccess userDetailsService) {
 		DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
@@ -55,24 +64,5 @@ public class SecurityConfig {
 	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
 		auth.authenticationProvider(authProvider(userDetailsService()));
 	}
-
-	/*
-	 * @Bean protected void configure(AuthenticationManagerBuilder auth) {
-	 * auth.authenticationProvider(authService); }
-	 */
-
-	/*
-	 * 
-	 * @Override public void configure(AuthenticationManagerBuilder
-	 * authenticationManagerBuilder) throws Exception { authenticationManagerBuilder
-	 * .userDetailsService(customUserDetailsService)
-	 * .passwordEncoder(passwordEncoder()); }
-	 * 
-	 * @Bean(BeanIds.AUTHENTICATION_MANAGER)
-	 * 
-	 * @Override public AuthenticationManager authenticationManagerBean() throws
-	 * Exception { return super.authenticationManagerBean(); }
-	 * 
-	 */
 
 }

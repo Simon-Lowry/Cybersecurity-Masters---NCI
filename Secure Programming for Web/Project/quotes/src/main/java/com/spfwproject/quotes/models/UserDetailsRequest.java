@@ -2,15 +2,18 @@ package com.spfwproject.quotes.models;
 
 import com.spfwproject.quotes.entities.UserEntity;
 
-public class SignUpFormRequest {
+public class UserDetailsRequest {
 	private String name;
 	private String username;
 	private String password;
 	private String passwordRepeated;
 	private String city;
 	private String country;
+	private Long id;
+	
+	public UserDetailsRequest() {}
 
-	public SignUpFormRequest(String name, String username, String password, String passwordRepeated, String city,
+	public UserDetailsRequest(Long id, String name, String username, String password, String passwordRepeated, String city,
 			String country) {
 		this.name = name;
 		this.username = username;
@@ -18,6 +21,18 @@ public class SignUpFormRequest {
 		this.passwordRepeated = passwordRepeated;
 		this.city = city;
 		this.country = country;
+		this.id = id;
+	}
+	
+	public UserDetailsRequest(String name, String username, String password, String passwordRepeated, String city,
+			String country) {
+		this.name = name;
+		this.username = username;
+		this.password = password;
+		this.passwordRepeated = passwordRepeated;
+		this.city = city;
+		this.country = country;
+		this.id = null;
 	}
 
 	public String getName() {
@@ -68,13 +83,21 @@ public class SignUpFormRequest {
 		this.country = country;
 	}
 
+	public Long getId() {
+		return id;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+	}
+
 	public UserEntity convertSignUpFormToUserEntity(String password, String salt) {
-		return new UserEntity(null, getName(), getUsername(), password, salt, false, getCity(), getCountry());
+		return new UserEntity(getName(), getUsername(), password, salt, false, getCity(), getCountry());
 	}
 
 	@Override
 	public String toString() {
-		return "SignUpForm [name=" + name + ", username=" + username + ", password=" + password + ", passwordRepeated="
+		return "SignUpForm [id= " + id + ",name=" + name + ", username=" + username + ", password=" + password + ", passwordRepeated="
 				+ passwordRepeated + ", city=" + city + ", country=" + country + "]";
 	}
 }

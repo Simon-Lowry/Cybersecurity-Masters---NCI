@@ -21,12 +21,12 @@ public class UserServiceComponentTest {
 // 	String city, String country)
 	@Test
 	void testCreateUser() throws URISyntaxException {
-		UserEntity userEntity = new UserEntity(505L, "Jacob Brady", "jacob@gmail.com", "somePassword", "salt", false,
+		UserEntity userEntity = new UserEntity("Jacob Brady", "jacob@gmail.com", "somePassword", "salt", false,
 				"MyCity", "MyCountry");
-
+		
 		UserEntity user = userService.createUser(userEntity);
 
-		assertEquals(user.getId(), 505L);
+		assertEquals(user.getId(), 1L);
 	}
 
 }

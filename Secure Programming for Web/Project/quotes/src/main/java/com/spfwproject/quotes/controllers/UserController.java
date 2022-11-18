@@ -18,7 +18,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.spfwproject.quotes.entities.UserEntity;
+import com.spfwproject.quotes.exceptions.UserNotFoundException;
+import com.spfwproject.quotes.models.UserDetailsRequest;
+import com.spfwproject.quotes.models.UserResponse;
 import com.spfwproject.quotes.services.UserService;
+import com.spfwproject.quotes.validators.UserDetailsValidator;
 
 @RestController
 @RequestMapping("/users")
@@ -31,63 +35,58 @@ public class UserController {
         this.userService = userService;
     }
 
-    @GetMapping
-    public List<UserEntity> getUsers() {
-    	final String methodName = "getUsers";
-    	logger.info("Entered " + methodName);
-    	
-    	List<UserEntity> allusers =  userService.getUsers();
-    	
-    	logger.info("Exiting method " + methodName + "." );
-    	return allusers;
-        
-    }
-
     @GetMapping("/{id}")
-    public UserEntity getUser(@PathVariable Long id) {
+    public ResponseEntity<UserResponse> getUser(@PathVariable Long id) {
     	final String methodName = "getUser";
     	logger.info("Entered " + methodName + ", retrieving user with id: " + id);
     	
     	// TODO: is user making request authenticated
-    	// TODO: is user authorized to retrieve given user's information
-    	UserEntity user = userService.getUser(id);
-    	 
-    	logger.info("Exiting method " + methodName + "." );
-        return user;
+    	// TODO: is user authorized to retrieve given user's information    	
+    	UserEntity user = null;
+    	try {
+    		user = userService.getUser(id);   	
+    		UserResponse userResponse = user.convertUserEntityToUserResponse();
+    		
+        	logger.info("Exiting method " + methodName + "." );
+    		return ResponseEntity.ok(userResponse);
+    	} catch (UserNotFoundException ex) {
+    		logger.error("Exception: " + ex);
+    		return (ResponseEntity) ResponseEntity.badRequest();
+    	}
     }
 
-    
-    //TODO: Delete this when further along.
-    @PostMapping
-    public ResponseEntity createUser(@RequestBody UserEntity user) throws URISyntaxException {
-    	final String methodName = "createUser";
-    	logger.info("Entered " + methodName);
-        
-    	UserEntity saveduser = userService.createUser(user);
-        ResponseEntity response = ResponseEntity.created(new URI("/users/" + saveduser.getId())).body(saveduser);
-        
-        logger.info("Exiting method " + methodName + "." );
-        return response;
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity updateUser(@PathVariable Long id, @RequestBody UserEntity user) throws URISyntaxException {
+    @PutMapping
+    public ResponseEntity updateUser(@RequestBody UserDetailsRequest user) throws URISyntaxException {
     	final String methodName = "updateUser";
     	logger.info("Entered " + methodName);
+    	
+    	//TODO: user is authenticated
+    	//TODO: user is user that's trying to be deleted
        
-    	UserEntity updatedUser = userService.updateUser(id, user);
+		UserDetailsValidator validator = new UserDetailsValidator(user);
+		validator.validate();
+		if (validator.containsErrors()) {
+	        logger.info("Exiting method, exception bad request" + methodName + "." );
+			return ResponseEntity.badRequest().body(validator.getListOfErrors());
+
+		}
+    	UserEntity updatedUser = userService.updateUser(user);
         ResponseEntity response = ResponseEntity.ok(user);
        
         logger.info("Exiting method " + methodName + "." );
         return response;
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity deleteUser(@PathVariable Long id) {
+    @DeleteMapping
+    public ResponseEntity deleteUser(@RequestBody UserDetailsRequest userDetails) {
     	final String methodName = "deleteUser";
     	logger.info("Entered " + methodName);
+    	
+    	//TODO: user is authenticated
+    	//TODO: user is user that's trying to be deleted
+    	//TODO: user has entered password and password has been validateds
         
-    	userService.deleteUser(id);
+    	userService.deleteUser(userDetails.getId(), userDetails.getPassword());
         ResponseEntity response = ResponseEntity.ok().build();
         
         logger.info("Exiting method " + methodName + "." );

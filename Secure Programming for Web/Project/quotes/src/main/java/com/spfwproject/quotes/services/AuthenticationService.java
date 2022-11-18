@@ -22,8 +22,8 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Component;
 
 import com.spfwproject.quotes.entities.UserEntity;
-import com.spfwproject.quotes.models.SignUpFormRequest;
-import com.spfwproject.quotes.validators.SignUpFormValidator;
+import com.spfwproject.quotes.models.UserDetailsRequest;
+import com.spfwproject.quotes.validators.UserDetailsValidator;
 
 @Component
 public class AuthenticationService implements AuthenticationProvider {
@@ -98,11 +98,11 @@ public class AuthenticationService implements AuthenticationProvider {
 		return true;
 	}
 
-	public SignUpFormValidator validateSignupForm(SignUpFormRequest signupForm) {
+	public UserDetailsValidator validateSignupForm(UserDetailsRequest signupForm) {
 		final String methodName = "validateSignupForm";
 		logger.info("Entering " + methodName);
 
-		SignUpFormValidator signUpFormValidator = new SignUpFormValidator(signupForm);
+		UserDetailsValidator signUpFormValidator = new UserDetailsValidator(signupForm);
 		signUpFormValidator.validate();
 
 		if (userService.doesUsernameAlreadyExist(signupForm.getUsername())) {

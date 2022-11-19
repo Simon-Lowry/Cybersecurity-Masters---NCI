@@ -42,6 +42,15 @@ public class UserEntity extends User {
         inverseJoinColumns = @JoinColumn(
           name = "role_id", referencedColumnName = "id")) 
     private Collection<RoleEntity> roles;
+	
+	@ManyToMany 
+    @JoinTable( 
+        name = "users_quotes", 
+        joinColumns = @JoinColumn(
+          name = "user_id", referencedColumnName = "id"), 
+        inverseJoinColumns = @JoinColumn(
+          name = "quote_id", referencedColumnName = "id")) 
+    private Collection<QuoteEntity> quotes;
 
 	public UserEntity() {
 		super("temp", "temp", true, false, false, false, new ArrayList<GrantedAuthority>());
@@ -130,6 +139,14 @@ public class UserEntity extends User {
 
 	public void setRoles(Collection<RoleEntity> roles) {
 		this.roles = roles;
+	}
+
+	public Collection<QuoteEntity> getQuotes() {
+		return quotes;
+	}
+
+	public void setQuotes(Collection<QuoteEntity> quotes) {
+		this.quotes = quotes;
 	}
 
 	public UserResponse convertUserEntityToUserResponse() {

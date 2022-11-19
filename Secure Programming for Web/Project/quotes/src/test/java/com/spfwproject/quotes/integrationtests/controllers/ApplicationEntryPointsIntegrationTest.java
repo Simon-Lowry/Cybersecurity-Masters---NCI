@@ -102,8 +102,8 @@ public class ApplicationEntryPointsIntegrationTest {
         .andExpect(status().isOk());
 		logger.info("Completed: check admin user can reach admin/getUser");
 		
-		LockUserRequest lockUser = new LockUserRequest(555L, false);
-		mockMvc.perform(post("/admin/lockUser").contentType(MediaType.APPLICATION_JSON)
+		LockUserRequest lockUser = new LockUserRequest(505L, false);
+		mockMvc.perform(put("/admin/lockUser").contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(lockUser)))
         		.andExpect(status().isOk());
 		logger.info("Completed: check admin user can reach admin/lock");

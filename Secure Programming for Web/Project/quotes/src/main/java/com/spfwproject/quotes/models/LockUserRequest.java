@@ -25,4 +25,9 @@ public class LockUserRequest {
 	public void setUserId(Long userId) {
 		this.userId = userId;
 	}
+
+	@Override
+	public String toString() {
+		return "LockUserRequest [lockUser=" + lockUser + ", userId=" + userId + "]";
+	}
 }

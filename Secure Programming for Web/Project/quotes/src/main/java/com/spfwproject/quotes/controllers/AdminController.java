@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -17,6 +18,7 @@ import com.spfwproject.quotes.entities.UserEntity;
 import com.spfwproject.quotes.exceptions.UserNotFoundException;
 import com.spfwproject.quotes.models.LockUserRequest;
 import com.spfwproject.quotes.models.UserResponse;
+import com.spfwproject.quotes.services.AdminService;
 import com.spfwproject.quotes.services.AuthenticationService;
 import com.spfwproject.quotes.services.UserService;
 
@@ -27,13 +29,14 @@ public class AdminController {
 
 	@Autowired
 	private UserService userService;
+	
+	@Autowired
+	private AdminService adminService;
 
-	public AdminController(UserService userService) {
+	public AdminController(UserService userService, AdminService adminService) {
 		this.userService = userService;
+		this.adminService = adminService;
 	}
-	//TODO: get a user
-	//TODO: unlock/lock user account
-	//TODO: enable/disable user account
 	
 	@GetMapping("/getUsers")
     public ResponseEntity<List<UserEntity>> getUsers() {
@@ -48,13 +51,11 @@ public class AdminController {
         
     }
 
-    @GetMapping("getUser/{id}")
+    @GetMapping("/getUser/{id}")
     public ResponseEntity getUser(@PathVariable Long id) {
     	final String methodName = "getUser";
     	logger.info("Entered " + methodName + ", retrieving user with id: " + id);
     	
-    	// TODO: is admin making request authenticated
-    	// TODO: is admin
     	UserEntity user = null;
     	try {
     		user = userService.getUser(id);   	
@@ -67,10 +68,18 @@ public class AdminController {
     	}
     }
     
-    @PostMapping("lockUser")
-    public ResponseEntity lockUser(@RequestBody LockUserRequest lockUserRequest) {
-    	
-    	 return ResponseEntity.ok(null);
+    @PutMapping("/lockUser")
+    public ResponseEntity<UserResponse> lockUser(@RequestBody LockUserRequest lockUserRequest) {
+    	try {
+    		UserEntity user = adminService.updateUserStatus(lockUserRequest);
+    		UserResponse userResponse = user.convertUserEntityToUserResponse();
+
+    		return ResponseEntity.ok(userResponse);
+    	} catch (UserNotFoundException ex) {
+    		logger.info("Exception " + ex);
+    		return (ResponseEntity) ResponseEntity.badRequest().body(ex);
+
+    	}
     }
 	
 }

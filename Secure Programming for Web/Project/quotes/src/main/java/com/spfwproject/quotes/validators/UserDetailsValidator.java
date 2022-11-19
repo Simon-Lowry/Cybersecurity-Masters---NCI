@@ -102,10 +102,8 @@ public class UserDetailsValidator extends Validator {
 
 	// Local-part: uppercase and lowercase Latin letters A to Z and a to z, digits:
 	// 0-9, allow dot, underscore and hyphen, dot not first or last char and not
-	// consecutive dots,
-	// & max 64 characters
-	// Domain: same as above for letters and digits and dots, hyphen is not first or
-	// last character also
+	// consecutive dots, & max 64 characters Domain: same as above for letters 
+	// and digits and dots, hyphen is not first or last character also.
 	// Regex is from:
 	// https://mkyong.com/regular-expressions/how-to-validate-email-address-with-regular-expression/
 	private boolean validateEmailAddress(String emailAddress) {

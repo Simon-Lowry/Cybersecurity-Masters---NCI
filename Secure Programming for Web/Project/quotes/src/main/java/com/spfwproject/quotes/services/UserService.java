@@ -94,7 +94,7 @@ public class UserService {
 		return createdUser;
 	}
 
-	public UserEntity updateUser(UserDetailsRequest userUpdateDetails) throws URISyntaxException {
+	public UserEntity updateUser(UserDetailsRequest userUpdateDetails) {
 		final String methodName = "updateUser";
 		logger.info("Entered " + methodName);
 		Long id = userUpdateDetails.getId();
@@ -102,7 +102,7 @@ public class UserService {
     	// TODO: if update contians password, generate new hashed password and salt
 		
 		// TODO: use setUpdateUserDetails
-		UserEntity currentUserEntity = userRepository.findById(id).orElseThrow(RuntimeException::new);
+		UserEntity currentUserEntity = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
 		UserEntity updatedUserEntity = setUpdateUserDetails(userUpdateDetails, currentUserEntity);
 		userRepository.save(updatedUserEntity);
 

@@ -5,6 +5,10 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+import com.spfwproject.quotes.constants.QuotePrivacySettings;
+import com.spfwproject.quotes.constants.Roles;
+import com.spfwproject.quotes.models.QuoteRequest;
+
 @Entity
 @Table(name = "Quotes")
 public class QuoteEntity {
@@ -15,14 +19,15 @@ public class QuoteEntity {
 	private Long userId;
 	private String quoteText;
 	private String quotePrivacySetting;
+	private String quoteAuthor;
     
     public QuoteEntity() {};
     
-    public QuoteEntity(Long id, Long userId, String quoteText, String quotePrivacySetting) {
-		this.id = id;
+    public QuoteEntity(Long userId, String quoteText, String quotePrivacySetting, String quoteAuthor) {
 		this.userId = userId;
 		this.quoteText = quoteText;
 		this.quotePrivacySetting = quotePrivacySetting;
+		this.quoteAuthor = quoteAuthor;
 	}
     
     public Long getId() {
@@ -46,7 +51,8 @@ public class QuoteEntity {
 	}
 	
 	public void setQuoteText(String quoteText) {
-		this.quoteText = quoteText;
+		QuotePrivacySettings role = QuotePrivacySettings.valueOf(quoteText); 
+		this.quoteText = role.toString();
 	}
 
 	public String getQuotePrivacySetting() {
@@ -55,6 +61,25 @@ public class QuoteEntity {
 
 	public void setQuotePrivacySetting(String quotePrivacySetting) {
 		this.quotePrivacySetting = quotePrivacySetting;
+	}
+
+	public String getQuoteAuthor() {
+		return quoteAuthor;
+	}
+
+	public void setQuoteAuthor(String quoteAuthor) {
+		this.quoteAuthor = quoteAuthor;
+	}
+	
+	public static QuoteEntity convertQuoteRequestToQuoteEntity(QuoteRequest quoteRequest) {
+		return new QuoteEntity(quoteRequest.getUserId(), quoteRequest.getQuoteText(), 
+				quoteRequest.getQuotePrivacySetting(), quoteRequest.getQuoteAuthor() );
+	}
+
+	@Override
+	public String toString() {
+		return "QuoteEntity [id=" + id + ", userId=" + userId + ", quoteText=" + quoteText + ", quotePrivacySetting="
+				+ quotePrivacySetting + ", quoteAuthor=" + quoteAuthor + "]";
 	}
 
 }

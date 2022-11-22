@@ -1,4 +1,4 @@
-package com.spfwproject.quotes.componenttests.services;
+package com.spfwproject.quotes.componenttests;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

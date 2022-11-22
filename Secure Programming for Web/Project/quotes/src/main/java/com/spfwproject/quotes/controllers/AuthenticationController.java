@@ -4,11 +4,20 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 
+import javax.validation.Valid;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,94 +28,113 @@ import com.spfwproject.quotes.models.LoginRequest;
 import com.spfwproject.quotes.models.UserDetailsRequest;
 import com.spfwproject.quotes.models.UserResponse;
 import com.spfwproject.quotes.services.AuthenticationService;
+import com.spfwproject.quotes.services.JWTTokenService;
 import com.spfwproject.quotes.services.UserService;
 import com.spfwproject.quotes.validators.UserDetailsValidator;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/auth/")
 public class AuthenticationController {
 	private Logger logger = LoggerFactory.getLogger(AuthenticationController.class);
 
 	@Autowired
-	private AuthenticationService authenticationService;
+	private final AuthenticationService authenticationService;
 
 	@Autowired
-	private UserService userService;
+	private final UserService userService;
+	
+	
+	@Autowired
+	private final JWTTokenService jwtTokenService;
 
-	public AuthenticationController(AuthenticationService authService, UserService userService) {
+	public AuthenticationController(AuthenticationService authService, UserService userService,
+			JWTTokenService jwtTokenService ) {
 		this.authenticationService = authService;
 		this.userService = userService;
+		this.jwtTokenService = jwtTokenService;
 	}
 
-	@PostMapping("/signUp")
-	public ResponseEntity signUp(@RequestBody UserDetailsRequest signupFormRequest) throws URISyntaxException {
+	@PostMapping("signUp")
+	public ResponseEntity<UserResponse> signUp(@RequestBody UserDetailsRequest signupFormRequest) throws URISyntaxException {
 		final String methodName = "signUp";
 		logger.info("Entered " + methodName);
 
 		UserDetailsValidator signUpFormValidator = authenticationService.validateSignupForm(signupFormRequest);
 
-		ResponseEntity response = null;
+		
 		if (!signUpFormValidator.containsErrors()) { // if form validation was a success, continue with user creation
-			char[] passwordAsCharArray = signupFormRequest.getPassword().toCharArray();
+			String plaintextPassword = signupFormRequest.getPassword();
 
-			ArrayList<byte[]> passwordAndHash = authenticationService.generatePasswordHashWithSalt(passwordAsCharArray);
-			logger.info("Password hash and salt generated");
+		//	ArrayList<byte[]> passwordAndHash = authenticationService.generatePasswordHashWithSalt(passwordAsCharArray);
+		//	logger.info("Password hash and salt generated");
 
-			UserEntity userToCreate = signupFormRequest.convertSignUpFormToUserEntity(passwordAndHash.get(0).toString(),
-					passwordAndHash.get(1).toString());
-
+			UserEntity userToCreate = signupFormRequest.convertSignUpFormToUserEntity(
+					authenticationService.generatePasswordWithBCrypt(plaintextPassword), null
+					);
+			
 			userService.createUser(userToCreate);
 
 			UserResponse userResponse = userToCreate.convertUserEntityToUserResponse();
-			// TODO: generate session and return in response
-			// TODO: generate token and return in response
 			// TODO: transaction id and return in response & increase logs with these
 			// details in them
-			// TODO: XSRF with spring security
 			logger.info("User created successfully, response data: " + userResponse.toString());
+			
+			 try {		            
+		            UsernamePasswordAuthenticationToken
+		            authentication = new UsernamePasswordAuthenticationToken(
+		            		userToCreate, null,
+		            		userToCreate.getAuthorities()
+		            );
+		            SecurityContextHolder.getContext().setAuthentication(authentication);
 
-			UsernamePasswordAuthenticationToken authReq = new UsernamePasswordAuthenticationToken(
-					userResponse.getEmail(), userToCreate.getPassword());
+		            ResponseEntity response = ResponseEntity.created(new URI("/signUp/" + userToCreate.getId()))
+							 .header(
+					                    HttpHeaders.AUTHORIZATION,
+					                    jwtTokenService.generateToken(authentication)
+					                )
+							.body(userResponse);
 
-			/*
-			 * ServletRequestAttributes attr = (ServletRequestAttributes)
-			 * RequestContextHolder.currentRequestAttributes(); HttpSession session =
-			 * attr.getRequest().getSession(true); // true == allow create
-			 * session.setAttribute("SPRING_SECURITY_CONTEXT", authReq);
-			 */
+		            return response;
+		        } catch (BadCredentialsException ex) {
+		            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+		        }
 
-			response = ResponseEntity.created(new URI("/signUp/" + userToCreate.getId())).body(userResponse);
 		} else {
-			response = ResponseEntity.badRequest().body(signUpFormValidator.getListOfErrors());
+			ResponseEntity response = ResponseEntity.badRequest().body(signUpFormValidator.getListOfErrors());
+			return response;
 		}
-		return response;
 	}
 
-	@PostMapping("/login")
-	public ResponseEntity performLogin(@RequestBody LoginRequest loginRequest) {
-		final String methodName = "performLogin";
-		logger.info("Entered method: " + methodName);
+	 @PostMapping("login")
+	 public ResponseEntity<UserResponse> login(@RequestBody @Valid LoginRequest request) {
+	        try {
+	            Authentication authentication = authenticationService
+	                .authenticate(
+	                    new UsernamePasswordAuthenticationToken(
+	                        request.getUsername(), request.getPassword()
+	                    )
+	                );
+	            SecurityContextHolder.getContext().setAuthentication(authentication);
 
-		UsernamePasswordAuthenticationToken authReq = new UsernamePasswordAuthenticationToken(
-				loginRequest.getUsername(), loginRequest.getPassword());
+	            logger.info("Made it to response entity on login!");
 
-		authReq = (UsernamePasswordAuthenticationToken) authenticationService.authenticate(authReq);
+	            ResponseEntity<UserResponse> response = ResponseEntity.ok()
+	                .header(
+	                    HttpHeaders.AUTHORIZATION,
+	                    jwtTokenService.generateToken(authentication)
+	                   
+	                ).body(new UserResponse(null, null, null, null, null));
+		        return response;
 
-		/*
-		 * ServletRequestAttributes attr = (ServletRequestAttributes)
-		 * RequestContextHolder.currentRequestAttributes(); HttpSession session =
-		 * attr.getRequest().getSession(true); // true == allow create
-		 * session.setAttribute("SPRING_SECURITY_CONTEXT", authReq);
-		 */
-
-		ResponseEntity response = ResponseEntity.ok(null);
-
-		return response;
+	        } catch (BadCredentialsException ex) {
+	            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+	        }
 	}
 
-	@PostMapping("/logout")
+	@PostMapping("logout")
 	public ResponseEntity performLogout(LoginRequest loginRequest) {
 		ResponseEntity response = null;
+
 
 		return (ResponseEntity) response.ok();
 	}

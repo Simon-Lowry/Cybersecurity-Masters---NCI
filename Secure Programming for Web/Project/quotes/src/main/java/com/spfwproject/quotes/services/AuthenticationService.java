@@ -14,11 +14,14 @@ import javax.crypto.spec.PBEKeySpec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.interceptor.LoggingCacheErrorHandler;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import com.spfwproject.quotes.entities.UserEntity;
@@ -35,9 +38,14 @@ public class AuthenticationService implements AuthenticationProvider {
 
 	@Autowired
 	private UserService userService;
+	
+	
+	@Autowired
+	private PasswordEncoder bcryptEncoder;
 
-	public AuthenticationService(UserService userService) {
+	public AuthenticationService(UserService userService, PasswordEncoder bcryptEncoder) {
 		this.userService = userService;
+		this.bcryptEncoder = bcryptEncoder;
 	}
 
 	public ArrayList<byte[]> generatePasswordHashWithSalt(char[] passwordAsCharArray) {
@@ -50,6 +58,8 @@ public class AuthenticationService implements AuthenticationProvider {
 		ArrayList<byte[]> passwordAndSalt = new ArrayList<byte[]>(2);
 		passwordAndSalt.add(passwordHash);
 		passwordAndSalt.add(salt);
+
+		logger.info("Password:  " + passwordHash.toString() + " salt: " + salt.toString());
 
 		logger.info("Exiting " + methodName);
 		return passwordAndSalt;
@@ -74,6 +84,16 @@ public class AuthenticationService implements AuthenticationProvider {
 			throw new RuntimeException(e);
 		}
 	}
+	
+	public String generatePasswordWithBCrypt(String plainPassword) {
+		 String encodedPassword = bcryptEncoder.encode(plainPassword);
+		 
+		 logger.info("Password before bcrypt plain: " + plainPassword);
+		 logger.info("Encoded bcrypt password: " + encodedPassword);
+
+		
+		return encodedPassword;
+	}
 
 	public boolean isExpectedPassword(char[] password, byte[] salt, byte[] expectedPasswordHash) {
 		final String methodName = "isExpectedPassword";
@@ -81,6 +101,9 @@ public class AuthenticationService implements AuthenticationProvider {
 
 		byte[] pwdHash = generatePasswordWithPDKDF2(password, salt);
 		Arrays.fill(password, Character.MIN_VALUE);
+
+		logger.info("Actual Password: " + pwdHash);
+		logger.info("Expected Password: " + expectedPasswordHash);
 
 		if (pwdHash.length != expectedPasswordHash.length) {
 			logger.info("Exiting " + methodName + ", password did not match expected password.");
@@ -96,6 +119,15 @@ public class AuthenticationService implements AuthenticationProvider {
 
 		logger.info("Exiting " + methodName + ", password matched expected password.");
 		return true;
+	}
+	
+	public boolean isExpectedPassword(String enteredPassword, String encodedPassword) 
+	{
+		//String enteredPasswordHashed = bcryptEncoder.encode(enteredPassword);
+		logger.info("Actual Password: " + encodedPassword);
+		logger.info("Expected Password: " + enteredPassword);
+		
+		return bcryptEncoder.matches(enteredPassword, encodedPassword);
 	}
 
 	public UserDetailsValidator validateSignupForm(UserDetailsRequest signupForm) {
@@ -122,13 +154,15 @@ public class AuthenticationService implements AuthenticationProvider {
 		logger.info("Entering " + methodName);
 
 		String username = authentication.getName();
-		char[] password = authentication.getCredentials().toString().toCharArray();
+		String password = authentication.getCredentials().toString();
 
 		logger.info("in authenticate pre get userbyusername");
 		UserEntity user = userService.getUserByUsername(username);
 
-		if (isExpectedPassword(password, user.getSalt().getBytes(), user.getPassword().getBytes())) {
+		if (isExpectedPassword(password, user.getPassword())) {
 			logger.info("Exiting " + methodName);
+			
+			//TODO: need to add roles to authorities instead of empty list
 			return new UsernamePasswordAuthenticationToken(user, password, Collections.emptyList());
 		} else {
 

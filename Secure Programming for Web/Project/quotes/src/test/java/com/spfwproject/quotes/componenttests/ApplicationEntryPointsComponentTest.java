@@ -1,4 +1,4 @@
-package com.spfwproject.quotes.integrationtests.controllers;
+package com.spfwproject.quotes.componenttests;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -17,11 +17,14 @@ import org.springframework.web.bind.annotation.GetMapping;
 import com.spfwproject.quotes.entities.UserEntity;
 import com.spfwproject.quotes.models.LockUserRequest;
 import com.spfwproject.quotes.models.UserDetailsRequest;
+import com.spwproject.quotes.dbaccesslayer.UserDBAccess;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 
 
 /**
@@ -41,9 +44,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
  */
 @SpringBootTest
 @AutoConfigureMockMvc
-public class ApplicationEntryPointsIntegrationTest {
-	private Logger logger = LoggerFactory.getLogger(ApplicationEntryPointsIntegrationTest.class);
+public class ApplicationEntryPointsComponentTest {
+	private Logger logger = LoggerFactory.getLogger(ApplicationEntryPointsComponentTest.class);
 
+	@Autowired
+	UserDBAccess userDetailsService;
  
     @Autowired
     private MockMvc mockMvc;
@@ -123,28 +128,28 @@ public class ApplicationEntryPointsIntegrationTest {
     }
     
     @Test
-    @WithMockUser(username = "abc@gmail.com",password = "felord.cn",roles = {"USER"})
-    public void requestProtectedUrlWithUser() throws JsonProcessingException, Exception {
+    public void requestProtectedAdminUrlsWithRegularUser_ThrowException() throws JsonProcessingException, Exception {
     	String testName = "requestProtectedUrlWithUser";
     	logger.info("Starting test: " + testName);
+		UserEntity user = (UserEntity) userDetailsService.loadUserByUsername("john@gmail.com");
+
     	signUpForm.setUsername("myusername1234@gmail.com");
     	
-		mockMvc.perform(get("/admin/unlockAccount/1"))
-        .andExpect(status().isForbidden());
+		mockMvc.perform(get("/admin/unlockAccount/1")
+			.with(user(user)))
+			.andExpect(status().isForbidden());
 		logger.info("Completed: check regular user can not perform admin/unlockAccount");
 		
-		mockMvc.perform(get("/admin/getUser/1"))
-        .andExpect(status().isForbidden());
+		mockMvc.perform(get("/admin/getUser/1")
+			.with(user(user)))
+        	.andExpect(status().isForbidden());
 		logger.info("Completed: check regular user can not perform admin/getUser");
 		
-		mockMvc.perform(get("/admin/lockUser"))
-        .andExpect(status().isForbidden());
+		mockMvc.perform(get("/admin/lockUser")
+			.with(user(user)))
+        	.andExpect(status().isForbidden());
 		logger.info("Completed: check regular user can not perform admin/lockUser");
-		
-		mockMvc.perform(get("/users/505")).andExpect(status().isOk());
-	    logger.info("Completed: check regular user can retrieve user data");
-	    //TODO: add remaining regular user ok 
-    	//TODO: check user can only act on their user profile
+			
     	//TODO: check user can't access any quotes of anoter user
     	//TODO: check user can't access any admin functionality or signup form
   

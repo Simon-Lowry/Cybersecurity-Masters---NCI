@@ -1,4 +1,4 @@
-package com.spfwproject.quotes.integrationtests.controllers;
+package com.spfwproject.quotes.integrationtests;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -26,15 +26,12 @@ import com.spfwproject.quotes.models.UserDetailsRequest;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@Transactional
 public class AdminControllerIntegrationTest {
 	@Autowired
 	private MockMvc mockMvc;
 
 	@Autowired
 	private ObjectMapper objectMapper;
-
-	private UserDetailsRequest signUpForm;
 
 	private Logger logger = LoggerFactory.getLogger(AdminControllerIntegrationTest.class);
 

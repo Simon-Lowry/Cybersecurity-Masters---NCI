@@ -2,10 +2,13 @@ package com.spfwproject.quotes.entities;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.persistence.*;
 
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 
 import com.spfwproject.quotes.models.UserResponse;
@@ -34,7 +37,7 @@ public class UserEntity extends User {
 	@Column(name = "account_locked")
 	private boolean accountLocked;
 	
-	@ManyToMany 
+	@ManyToMany(fetch = FetchType.EAGER)
     @JoinTable( 
         name = "users_roles", 
         joinColumns = @JoinColumn(
@@ -67,13 +70,22 @@ public class UserEntity extends User {
 		this.city = city;
 		this.country = country;
 	}
+	
+	public UserEntity(Long id, String name, String username, String password, String salt, boolean accountLocked,
+			String city, String country,ArrayList<SimpleGrantedAuthority> authorities ) {
+		super(username, password, true, false, false, !accountLocked, authorities);
+		this.name = name;
+		this.username = username;
+		this.password = password;
+		this.salt = salt;
+		this.accountLocked = accountLocked;
+		this.city = city;
+		this.country = country;	
+		this.id = id;
+	}
 
 	public Long getId() {
 		return id;
-	}
-
-	public void setId(Long id) {
-		this.id = id;
 	}
 
 	public String getName() {
@@ -147,6 +159,16 @@ public class UserEntity extends User {
 
 	public void setQuotes(Collection<QuoteEntity> quotes) {
 		this.quotes = quotes;
+	}
+	
+	public UserEntity convertToUserEntityWithAuthorities() {
+		ArrayList<SimpleGrantedAuthority> authorities = new ArrayList<>();   
+		getRoles().forEach(role -> {
+	            authorities.add(new SimpleGrantedAuthority("ROLE_" + role.getName()));
+	    });
+		
+		return new UserEntity(id, name,username, password, salt, accountLocked, city, country,
+				authorities);
 	}
 
 	public UserResponse convertUserEntityToUserResponse() {

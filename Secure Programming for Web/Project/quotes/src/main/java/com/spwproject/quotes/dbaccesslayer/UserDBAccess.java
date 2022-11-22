@@ -24,8 +24,10 @@ public class UserDBAccess implements UserDetailsService {
 
 		if (user == null)
 			throw new UsernameNotFoundException("User not found!");
+			
+		UserEntity userWithRoles = user.convertToUserEntityWithAuthorities();
 
-		return user;
+		return userWithRoles;
 	}
 
 }

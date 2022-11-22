@@ -3,13 +3,14 @@ INSERT INTO Roles (id, name) VALUES (2, 'ADMIN');
 
 
 INSERT INTO Users ( id, name, username, hashed_password, salt, account_locked, city, country) 
-	VALUES ( 505, 'John Smith', 'john@gmail.com', 'somePassword', 'salt', false, 'MyCity', 'MyCountry');
+	VALUES ( 505, 'John Smith', 'john@gmail.com', '$2a$10$78qyrUOJsjubtqkyflmdX.1mRa7s.atCD9bkSGih3sAwxs4vmuVYe', 
+	'[B@583b177a', false, 'MyCity', 'MyCountry');
 INSERT INTO Users ( id, name, username, hashed_password, salt, account_locked, city, country) 
-	VALUES (506, 'Simon Lowry', 'simon@gmail.com',  null, null, false, 'MyCity', 'MyCountry');
+	VALUES (506, 'Simon Lowry', 'simon@gmail.com',  'somePassword', 'salt', false, 'MyCity', 'MyCountry');
 INSERT INTO Users ( id, name, username, hashed_password, salt, account_locked, city, country) 
-	VALUES (507, 'Bart Simpson', 'bart@gmail.com',  null, null, false, 'MyCity', 'MyCountry');
+	VALUES (507, 'Bart Simpson', 'bart@gmail.com',  'somepassword', 'salt', false, 'MyCity', 'MyCountry');
 INSERT INTO Users ( id, name, username, hashed_password, salt, account_locked, city, country) 
-	VALUES (508, 'Jesus Christ', 'jesus@godmail.com', null, null, false, 'MyCity', 'MyCountry');
+	VALUES (508, 'Jesus Christ', 'jesus@godmail.com', 'password', 'salt', false, 'MyCity', 'MyCountry');
 INSERT INTO Users ( id, name, username, hashed_password, salt, account_locked, city, country) 
 	VALUES (509, 'Jacob Brady', 'jacob@gmail.com', 'somePassword', 'salt', false, 'MyCity', 'MyCountry');
 	

@@ -1,8 +1,12 @@
-package com.spfwproject.quotes.integrationtests.controllers;
+package com.spfwproject.quotes.integrationtests;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.util.ArrayList;
+
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -12,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
@@ -19,9 +24,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.spfwproject.quotes.entities.UserEntity;
 import com.spfwproject.quotes.models.LoginRequest;
 import com.spfwproject.quotes.models.UserDetailsRequest;
+import com.spfwproject.quotes.services.AuthenticationService;
+import com.spfwproject.quotes.services.UserService;
 import com.spfwproject.quotes.validators.UserDetailsValidator;
+import com.spwproject.quotes.dbaccesslayer.UserDBAccess;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -34,17 +43,25 @@ public class AuthenticationControllerIntegrationTest {
 	private ObjectMapper objectMapper;
 
 	private UserDetailsRequest signUpForm;
+	
+	@Autowired
+	private UserService userService;
+
+	@Autowired
+	private UserDBAccess userDetailsService;
+	
 
 	private Logger logger = LoggerFactory.getLogger(AuthenticationControllerIntegrationTest.class);
 
 	@BeforeEach
 	void setup() {
-		signUpForm = new UserDetailsRequest("My Name", "myemail@mail.com", "Passcword123&%", "Passcword123&%", "Dublin",
+		signUpForm = new UserDetailsRequest("My Name", "myemail@mail.com", "Passcword123&$", "Passcword123&$", "Dublin",
 				"Ireland");
 
 	}
 
 	@Test
+	@WithAnonymousUser
 	void testSignup_WithValidSignupData_Success() throws JsonProcessingException, Exception {
 		logger.info("Entered test: testSignup_WithValidSignupData_Success");
 		signUpForm.setUsername("success" + signUpForm.getUsername());
@@ -130,39 +147,38 @@ public class AuthenticationControllerIntegrationTest {
 		assertEquals(requestResponseBody, UserDetailsValidator.PASSWORD_REPEAT_ERROR);
 	}
 
-	/*
-	 * @Test void testLogin_WithValidCredentials_Success() throws
-	 * JsonProcessingException, Exception {
-	 * 
-	 * signUpForm.setUsername("words" + signUpForm.getUsername());
-	 * mockMvc.perform(post("/auth/signUp").contentType(MediaType.APPLICATION_JSON)
-	 * .content(objectMapper.writeValueAsString(signUpForm))).andExpect(status().
-	 * isCreated());
-	 * 
-	 * LoginRequest loginRequest = new LoginRequest(signUpForm.getUsername(),
-	 * signUpForm.getPassword());
-	 * mockMvc.perform(post("/auth/login").contentType(MediaType.APPLICATION_JSON)
-	 * .content(objectMapper.writeValueAsString(loginRequest))).andExpect(status().
-	 * isOk());
-	 * 
-	 * }
-	 */
-
 	@Test
-	void testLogin_WithBadCredentials_ThrowAuthenticationException() throws JsonProcessingException, Exception {
-		signUpForm.setUsername("auth" + signUpForm.getUsername());
-		mockMvc.perform(post("/auth/signUp").contentType(MediaType.APPLICATION_JSON)
-				.content(objectMapper.writeValueAsString(signUpForm))).andExpect(status().isCreated());
-
-		LoginRequest loginRequest = new LoginRequest(signUpForm.getUsername(), "JAmmm9$iijsjskskkkk");
+	@WithAnonymousUser
+	void testLogin_WithLegitCredentials_ThrowSucceed() throws JsonProcessingException, Exception {
+		logger.info("Enter legit login: ");
+	/*
+		UserEntity user = (UserEntity) userDetailsService.loadUserByUsername("john@gmail.com");
+		String password = "Passcword123";
+		UserDetailsRequest userUpdateDetails = new UserDetailsRequest();
+		userUpdateDetails.setPassword(password);
+		userService.updateUser(userUpdateDetails);
+		*/
+		String password = "Passcword123&$";
+		
+		LoginRequest loginRequest = new LoginRequest("john@gmail.com",password);
 		ResultActions resultActions = mockMvc.perform(post("/auth/login").contentType(MediaType.APPLICATION_JSON)
-				.content(objectMapper.writeValueAsString(loginRequest)));
+				.content(objectMapper.writeValueAsString(loginRequest))).andExpect(status().isOk());
+		MvcResult result = resultActions.andReturn();
+		logger.info("status of legit login: " + result.getResponse());
+	}
+	
+	@Test
+	@WithAnonymousUser
+	void testLogin_WithBadCredentials_ThrowAuthenticationException() throws JsonProcessingException, Exception {
+		LoginRequest loginRequest = new LoginRequest("john@gmail.com", "JAmmm9$iijsjskskkkk");
+		ResultActions resultActions = mockMvc.perform(post("/auth/login").contentType(MediaType.APPLICATION_JSON)
+				.content(objectMapper.writeValueAsString(loginRequest))).andExpect(status().isUnauthorized());
 		MvcResult result = resultActions.andReturn();
 		logger.info("status of bad creds test 1: " + result.getResponse());
 
 		loginRequest = new LoginRequest("Bjork", signUpForm.getPassword());
 		resultActions = mockMvc.perform(post("/auth/login").contentType(MediaType.APPLICATION_JSON)
-				.content(objectMapper.writeValueAsString(loginRequest)));
+				.content(objectMapper.writeValueAsString(loginRequest))).andExpect(status().isUnauthorized());
 		result = resultActions.andReturn();
 
 		logger.info("status of bad creds test 2: " + result.getResponse());

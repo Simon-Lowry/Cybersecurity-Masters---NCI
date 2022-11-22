@@ -1,5 +1,7 @@
 package com.spfwproject.quotes;
 
+import java.security.SecureRandom;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -8,9 +10,15 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.authentication.AuthenticationManager;
+
 
 import com.spfwproject.quotes.services.AuthenticationService;
+import com.spfwproject.quotes.services.JWTTokenService;
 import com.spwproject.quotes.dbaccesslayer.UserDBAccess;
 
 @Configuration
@@ -24,9 +32,8 @@ public class SecurityConfig {
 	public static final String USER_ROLE = "USER";
 	public static final String USER_SUCCESS_URL = "TBD/user/dashboard";
 
-	@Autowired
-	AuthenticationService authService;
 
+	
 	/*
 	 * @Autowired BCryptPasswordEncoder crypt;
 	 */
@@ -48,9 +55,14 @@ public class SecurityConfig {
 		.mvcMatchers("/quotes/**").hasRole("USER")
 		.mvcMatchers("/users/**").hasAnyRole("USER")
 		.mvcMatchers("/auth/signUp").hasAnyRole("ANONYMOUS")
-
+		.mvcMatchers("/auth/login").hasAnyRole("ANONYMOUS")
 		.anyRequest().denyAll(); 
 		
+		 // Add JWT token filter
+        http.addFilterBefore(
+        	authenticationTokenFilterBean(),
+            UsernamePasswordAuthenticationFilter.class
+        );
 		return http.build();
 	}
 	
@@ -58,11 +70,27 @@ public class SecurityConfig {
 	public DaoAuthenticationProvider authProvider(UserDBAccess userDetailsService) {
 		DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
 		authProvider.setUserDetailsService(userDetailsService);
+		authProvider.setPasswordEncoder(encoder());
+
 		return authProvider;
+	}
+	
+	@Autowired
+	JWTTokenService tokenService;
+		
+	@Bean
+	public JWTAuthenticationFilter authenticationTokenFilterBean() throws Exception {
+	    return new JWTAuthenticationFilter(tokenService, userDetailsService());
 	}
 
 	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
 		auth.authenticationProvider(authProvider(userDetailsService()));
 	}
-
+	
+	@Bean
+	public PasswordEncoder encoder() {
+		 int strength = 10; // work factor of bcrypt
+	    return new BCryptPasswordEncoder(strength, new SecureRandom());
+	}
+	
 }

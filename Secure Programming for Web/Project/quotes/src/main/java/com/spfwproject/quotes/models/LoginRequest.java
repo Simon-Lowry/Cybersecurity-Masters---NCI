@@ -1,7 +1,11 @@
 package com.spfwproject.quotes.models;
 
+import javax.validation.constraints.NotEmpty;
+
 public class LoginRequest {
+    @NotEmpty(message="Username must be entered.")
 	private String username;
+    @NotEmpty(message="Password must be entered.")
 	private String password;
 
 	public LoginRequest(String username, String password) {

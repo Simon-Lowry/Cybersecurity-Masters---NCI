@@ -4,7 +4,9 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +34,7 @@ public class UserService {
 
 	@Autowired
 	private final RoleRepository roleRepository;
+	
 
 	private Logger logger = LoggerFactory.getLogger(UserService.class);
 
@@ -70,7 +73,8 @@ public class UserService {
 		if (user == null) {
 			throw new UsernameNotFoundException("Problem during authentication!");
 		}
-
+		
+		//user.setRoles(getAuthorities());
 		logger.info("Exiting method " + methodName + ".");
 		return user;
 
@@ -100,14 +104,16 @@ public class UserService {
 		Long id = userUpdateDetails.getId();
 
     	// TODO: if update contians password, generate new hashed password and salt
+
 		
 		// TODO: use setUpdateUserDetails
 		UserEntity currentUserEntity = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
-		UserEntity updatedUserEntity = setUpdateUserDetails(userUpdateDetails, currentUserEntity);
-		userRepository.save(updatedUserEntity);
+		//UserEntity updatedUserEntity = setUpdateUserDetails(userUpdateDetails, currentUserEntity);
+		
+		userRepository.save(currentUserEntity);
 
 		logger.info("Exiting method " + methodName + ".");
-		return updatedUserEntity;
+		return currentUserEntity;
 	}
 	
 	private UserEntity setUpdateUserDetails(UserDetailsRequest updaterDetails, UserEntity currentEntity) {
@@ -124,6 +130,15 @@ public class UserService {
 		logger.info("Exiting method " + methodName + ".");
 		return true;
 	}
+	
+	private Set<SimpleGrantedAuthority> getAuthority(UserEntity user) {
+        Set<SimpleGrantedAuthority> authorities = new HashSet<>();
+        user.getRoles().forEach(role -> {
+            authorities.add(new SimpleGrantedAuthority("ROLE_" + role.getName()));
+        });
+        return authorities;
+    }
+
 
 	private Collection<? extends GrantedAuthority> getAuthorities(Collection<RoleEntity> roles) {
 		return getGrantedAuthorities(getPrivileges(roles));

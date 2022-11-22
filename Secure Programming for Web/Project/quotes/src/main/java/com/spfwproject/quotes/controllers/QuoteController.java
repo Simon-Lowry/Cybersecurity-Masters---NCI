@@ -1,8 +1,8 @@
 package com.spfwproject.quotes.controllers;
 
+import java.net.URI;
 import java.net.URISyntaxException;
 
-import java.net.URI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,13 +17,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.spfwproject.quotes.entities.QuoteEntity;
-import com.spfwproject.quotes.entities.UserEntity;
+import com.spfwproject.quotes.exceptions.NonEntityOwnerAuthorisationException;
 import com.spfwproject.quotes.exceptions.QuoteNotFoundException;
-import com.spfwproject.quotes.exceptions.UserNotFoundException;
+import com.spfwproject.quotes.interfaces.AuthorisationService;
+import com.spfwproject.quotes.interfaces.QuoteService;
 import com.spfwproject.quotes.models.QuoteRequest;
 import com.spfwproject.quotes.models.QuoteResponse;
-import com.spfwproject.quotes.models.UserResponse;
-import com.spfwproject.quotes.services.QuoteService;
 import com.spfwproject.quotes.validators.QuoteValidator;
 
 @RestController
@@ -31,43 +30,54 @@ import com.spfwproject.quotes.validators.QuoteValidator;
 public class QuoteController {
 	@Autowired
 	QuoteService quoteService;
-	
-    private Logger logger = LoggerFactory.getLogger(QuoteController.class);
 
-	public QuoteController(QuoteService quoteService) {
+	@Autowired
+	AuthorisationService authorisationService;
+
+	private Logger logger = LoggerFactory.getLogger(QuoteController.class);
+
+	public QuoteController(QuoteService quoteService, AuthorisationService authorisationService) {
 		this.quoteService = quoteService;
+		this.authorisationService = authorisationService;
 	}
-	
+
 	@GetMapping
 	public ResponseEntity getAllOfAUsersQuotes() {
 		return (ResponseEntity) ResponseEntity.ok();
 	}
 
 	@GetMapping("/{id}")
-	public ResponseEntity getQuote(@PathVariable Long quoteId) {
+	public ResponseEntity getQuote(@RequestBody QuoteRequest quoteRequest) throws NonEntityOwnerAuthorisationException {
 		final String methodName = "getQuote";
-    	logger.info("Entered " + methodName + ", retrieving user with id: " + quoteId);
-    	
-    	// TODO: is user making request authenticated
-    	// TODO: is user authorized to retrieve given user's information    	
-    	QuoteEntity quoteEntity = null;
-    	try {
-    		quoteEntity = quoteService.getQuote(quoteId);   	
-    		QuoteResponse quoteResponse = QuoteResponse.convertQuoteEntityToQuoteResponse(quoteEntity);
-    		
-        	logger.info("Exiting method " + methodName + "." );
-    		return ResponseEntity.ok(quoteResponse);
-    	} catch (QuoteNotFoundException ex) {
-    		logger.error("Exception: " + ex);
-    		return (ResponseEntity) ResponseEntity.badRequest();
-    	}	
-    }
-	
+		Long userId = quoteRequest.getUserId();
+		Long quoteId = quoteRequest.getQuoteId();
+
+		logger.info("Entered " + methodName + ", retrieving user with id: " + quoteId);
+		authorisationService.isAuthenticatedUserAuthorizedToActOnEntity(userId);
+
+		// TODO: is user making request authenticated
+		// TODO: is user authorized to retrieve given user's information
+		QuoteEntity quoteEntity = null;
+		try {
+			quoteEntity = quoteService.getQuoteById(quoteId);
+			QuoteResponse quoteResponse = QuoteResponse.convertQuoteEntityToQuoteResponse(quoteEntity);
+
+			logger.info("Exiting method " + methodName + ".");
+			return ResponseEntity.ok(quoteResponse);
+		} catch (QuoteNotFoundException ex) {
+			logger.error("Exception: " + ex);
+			return (ResponseEntity) ResponseEntity.badRequest();
+		}
+	}
+
 	@PostMapping
-	public ResponseEntity createQuote(@RequestBody QuoteRequest quoteRequest) {
+	public ResponseEntity createQuote(@RequestBody QuoteRequest quoteRequest)
+			throws NonEntityOwnerAuthorisationException {
+		authorisationService.isAuthenticatedUserAuthorizedToActOnEntity(quoteRequest.getUserId());
+
 		QuoteValidator quoteValidator = new QuoteValidator(quoteRequest);
 		quoteValidator.validate();
-		
+
 		if (quoteValidator.containsErrors()) {
 			return ResponseEntity.badRequest().body(quoteValidator.getListOfErrors());
 		} else {
@@ -81,12 +91,15 @@ public class QuoteController {
 			}
 		}
 	}
-	
+
 	@PutMapping
-	public ResponseEntity updateQuote(@RequestBody QuoteRequest quoteRequest) {
+	public ResponseEntity updateQuote(@RequestBody QuoteRequest quoteRequest)
+			throws NonEntityOwnerAuthorisationException {
+		authorisationService.isAuthenticatedUserAuthorizedToActOnEntity(quoteRequest.getUserId());
+
 		QuoteValidator quoteValidator = new QuoteValidator(quoteRequest);
 		quoteValidator.validate();
-		
+
 		if (quoteValidator.containsErrors()) {
 			return ResponseEntity.badRequest().body(quoteValidator.getListOfErrors());
 		} else {
@@ -102,7 +115,9 @@ public class QuoteController {
 	}
 
 	@DeleteMapping
-	public ResponseEntity deleteQuote(@PathVariable Long id) {
+	public ResponseEntity deleteQuote(@PathVariable Long id) throws NonEntityOwnerAuthorisationException {
+		authorisationService.isAuthenticatedUserAuthorizedToActOnEntity(id);
+
 		quoteService.deleteQuote(id);
 		return ResponseEntity.ok(null);
 	}

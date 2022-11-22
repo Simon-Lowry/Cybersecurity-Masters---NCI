@@ -17,8 +17,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.security.authentication.AuthenticationManager;
 
 
-import com.spfwproject.quotes.services.AuthenticationService;
-import com.spfwproject.quotes.services.JWTTokenService;
+import com.spfwproject.quotes.services.AuthenticationServiceImpl;
+import com.spfwproject.quotes.services.JWTTokenServiceImpl;
 import com.spwproject.quotes.dbaccesslayer.UserDBAccess;
 
 @Configuration
@@ -76,7 +76,7 @@ public class SecurityConfig {
 	}
 	
 	@Autowired
-	JWTTokenService tokenService;
+	JWTTokenServiceImpl tokenService;
 		
 	@Bean
 	public JWTAuthenticationFilter authenticationTokenFilterBean() throws Exception {

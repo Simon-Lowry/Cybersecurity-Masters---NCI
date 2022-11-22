@@ -14,13 +14,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import com.spfwproject.quotes.models.UserDetailsRequest;
-import com.spfwproject.quotes.services.AuthenticationService;
+import com.spfwproject.quotes.services.AuthenticationServiceImpl;
 import com.spfwproject.quotes.validators.UserDetailsValidator;
 
 @SpringBootTest
 public class AuthenticationServiceComponentTest {
 	@Autowired
-	AuthenticationService authenticationService;
+	AuthenticationServiceImpl authenticationService;
 	
 	private Logger logger = LoggerFactory.getLogger(AuthenticationServiceComponentTest.class);
 

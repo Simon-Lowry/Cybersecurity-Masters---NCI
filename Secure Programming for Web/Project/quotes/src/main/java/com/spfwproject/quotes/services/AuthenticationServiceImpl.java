@@ -14,36 +14,34 @@ import javax.crypto.spec.PBEKeySpec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.interceptor.LoggingCacheErrorHandler;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import com.spfwproject.quotes.entities.UserEntity;
+import com.spfwproject.quotes.interfaces.AuthenticationService;
 import com.spfwproject.quotes.models.UserDetailsRequest;
 import com.spfwproject.quotes.validators.UserDetailsValidator;
 
 @Component
-public class AuthenticationService implements AuthenticationProvider {
-	private Logger logger = LoggerFactory.getLogger(AuthenticationService.class);
+public class AuthenticationServiceImpl implements AuthenticationProvider, AuthenticationService {
+	private Logger logger = LoggerFactory.getLogger(AuthenticationServiceImpl.class);
 
 	private static final Random RANDOM = new SecureRandom();
 	private static final int ITERATIONS = 1; // TODO: decide on value, was 1000
 	private static final int KEY_LENGTH = 256;
 
 	@Autowired
-	private UserService userService;
-	
-	
+	private UserServiceImpl userService;
+
 	@Autowired
 	private PasswordEncoder bcryptEncoder;
 
-	public AuthenticationService(UserService userService, PasswordEncoder bcryptEncoder) {
+	public AuthenticationServiceImpl(UserServiceImpl userService, PasswordEncoder bcryptEncoder) {
 		this.userService = userService;
 		this.bcryptEncoder = bcryptEncoder;
 	}
@@ -84,14 +82,13 @@ public class AuthenticationService implements AuthenticationProvider {
 			throw new RuntimeException(e);
 		}
 	}
-	
-	public String generatePasswordWithBCrypt(String plainPassword) {
-		 String encodedPassword = bcryptEncoder.encode(plainPassword);
-		 
-		 logger.info("Password before bcrypt plain: " + plainPassword);
-		 logger.info("Encoded bcrypt password: " + encodedPassword);
 
-		
+	public String generatePasswordWithBCrypt(String plainPassword) {
+		String encodedPassword = bcryptEncoder.encode(plainPassword);
+
+		logger.info("Password before bcrypt plain: " + plainPassword);
+		logger.info("Encoded bcrypt password: " + encodedPassword);
+
 		return encodedPassword;
 	}
 
@@ -120,13 +117,12 @@ public class AuthenticationService implements AuthenticationProvider {
 		logger.info("Exiting " + methodName + ", password matched expected password.");
 		return true;
 	}
-	
-	public boolean isExpectedPassword(String enteredPassword, String encodedPassword) 
-	{
-		//String enteredPasswordHashed = bcryptEncoder.encode(enteredPassword);
+
+	public boolean isExpectedPassword(String enteredPassword, String encodedPassword) {
+		// String enteredPasswordHashed = bcryptEncoder.encode(enteredPassword);
 		logger.info("Actual Password: " + encodedPassword);
 		logger.info("Expected Password: " + enteredPassword);
-		
+
 		return bcryptEncoder.matches(enteredPassword, encodedPassword);
 	}
 
@@ -161,8 +157,8 @@ public class AuthenticationService implements AuthenticationProvider {
 
 		if (isExpectedPassword(password, user.getPassword())) {
 			logger.info("Exiting " + methodName);
-			
-			//TODO: need to add roles to authorities instead of empty list
+
+			// TODO: need to add roles to authorities instead of empty list
 			return new UsernamePasswordAuthenticationToken(user, password, Collections.emptyList());
 		} else {
 

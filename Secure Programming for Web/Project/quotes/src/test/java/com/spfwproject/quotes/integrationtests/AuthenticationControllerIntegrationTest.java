@@ -27,8 +27,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.spfwproject.quotes.entities.UserEntity;
 import com.spfwproject.quotes.models.LoginRequest;
 import com.spfwproject.quotes.models.UserDetailsRequest;
-import com.spfwproject.quotes.services.AuthenticationService;
-import com.spfwproject.quotes.services.UserService;
+import com.spfwproject.quotes.services.AuthenticationServiceImpl;
+import com.spfwproject.quotes.services.UserServiceImpl;
 import com.spfwproject.quotes.validators.UserDetailsValidator;
 import com.spwproject.quotes.dbaccesslayer.UserDBAccess;
 
@@ -45,7 +45,7 @@ public class AuthenticationControllerIntegrationTest {
 	private UserDetailsRequest signUpForm;
 	
 	@Autowired
-	private UserService userService;
+	private UserServiceImpl userService;
 
 	@Autowired
 	private UserDBAccess userDetailsService;

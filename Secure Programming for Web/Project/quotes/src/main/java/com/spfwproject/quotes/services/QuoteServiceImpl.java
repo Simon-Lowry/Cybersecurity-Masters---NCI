@@ -6,29 +6,25 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 
-import com.spfwproject.quotes.controllers.QuoteController;
 import com.spfwproject.quotes.entities.QuoteEntity;
 import com.spfwproject.quotes.exceptions.QuoteNotFoundException;
+import com.spfwproject.quotes.interfaces.QuoteService;
 import com.spfwproject.quotes.models.QuoteRequest;
-import com.spfwproject.quotes.repositories.QuoteRepository;
 import com.spfwproject.quotes.repositories.QuoteRepository;
 
 @Component
-public class QuoteService {
+public class QuoteServiceImpl implements QuoteService {
 	private final QuoteRepository quoteRepository;
 
-	private Logger logger = LoggerFactory.getLogger(QuoteService.class);
+	private Logger logger = LoggerFactory.getLogger(QuoteServiceImpl.class);
 
-	public QuoteService(QuoteRepository quoteRepo) {
+	public QuoteServiceImpl(QuoteRepository quoteRepo) {
 		this.quoteRepository = quoteRepo;
 	}
 
-	//TODO: make this into a get all quotes by a given user
-	public List<QuoteEntity> getQuotes() {
+	// TODO: make this into a get all quotes by a given user
+	public List<QuoteEntity> getQuotesForAUser() {
 		final String methodName = "getQuote";
 		logger.info("Entered " + methodName);
 
@@ -39,7 +35,7 @@ public class QuoteService {
 
 	}
 
-	public QuoteEntity getQuote( Long id) {
+	public QuoteEntity getQuoteById(Long id) {
 		final String methodName = "getQuote";
 		logger.info("Entered " + methodName + ", retrieving Quote with id: " + id);
 
@@ -49,8 +45,7 @@ public class QuoteService {
 		return quote;
 	}
 
-	@PostMapping
-	public QuoteEntity createQuote( QuoteRequest quoteRequest) throws URISyntaxException {
+	public QuoteEntity createQuote(QuoteRequest quoteRequest) throws URISyntaxException {
 		final String methodName = "createQuote";
 		logger.info("Entered " + methodName);
 
@@ -61,7 +56,7 @@ public class QuoteService {
 		return createdQuote;
 	}
 
-	public QuoteEntity updateQuote( QuoteRequest quoteRequest) {
+	public QuoteEntity updateQuote(QuoteRequest quoteRequest) {
 		final String methodName = "updateQuote";
 		logger.info("Entered " + methodName);
 		Long id = quoteRequest.getQuoteId();
@@ -77,7 +72,7 @@ public class QuoteService {
 		return quoteToBeUpdated;
 	}
 
-	public boolean deleteQuote( Long id) {
+	public boolean deleteQuote(Long id) {
 		final String methodName = "deleteQuote";
 		logger.info("Entered " + methodName);
 

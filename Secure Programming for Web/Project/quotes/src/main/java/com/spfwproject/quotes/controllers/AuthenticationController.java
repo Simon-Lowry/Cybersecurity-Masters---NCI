@@ -27,9 +27,9 @@ import com.spfwproject.quotes.entities.UserEntity;
 import com.spfwproject.quotes.models.LoginRequest;
 import com.spfwproject.quotes.models.UserDetailsRequest;
 import com.spfwproject.quotes.models.UserResponse;
-import com.spfwproject.quotes.services.AuthenticationService;
-import com.spfwproject.quotes.services.JWTTokenService;
-import com.spfwproject.quotes.services.UserService;
+import com.spfwproject.quotes.services.AuthenticationServiceImpl;
+import com.spfwproject.quotes.services.JWTTokenServiceImpl;
+import com.spfwproject.quotes.services.UserServiceImpl;
 import com.spfwproject.quotes.validators.UserDetailsValidator;
 
 @RestController
@@ -38,17 +38,17 @@ public class AuthenticationController {
 	private Logger logger = LoggerFactory.getLogger(AuthenticationController.class);
 
 	@Autowired
-	private final AuthenticationService authenticationService;
+	private final AuthenticationServiceImpl authenticationService;
 
 	@Autowired
-	private final UserService userService;
+	private final UserServiceImpl userService;
 	
 	
 	@Autowired
-	private final JWTTokenService jwtTokenService;
+	private final JWTTokenServiceImpl jwtTokenService;
 
-	public AuthenticationController(AuthenticationService authService, UserService userService,
-			JWTTokenService jwtTokenService ) {
+	public AuthenticationController(AuthenticationServiceImpl authService, UserServiceImpl userService,
+			JWTTokenServiceImpl jwtTokenService ) {
 		this.authenticationService = authService;
 		this.userService = userService;
 		this.jwtTokenService = jwtTokenService;

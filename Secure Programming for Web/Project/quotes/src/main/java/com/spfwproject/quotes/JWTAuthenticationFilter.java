@@ -18,15 +18,15 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import com.spfwproject.quotes.services.JWTTokenService;
+import com.spfwproject.quotes.services.JWTTokenServiceImpl;
 import com.spwproject.quotes.dbaccesslayer.UserDBAccess;
 
 public class JWTAuthenticationFilter extends OncePerRequestFilter {
 
-	private final JWTTokenService jwtTokenUtil;
+	private final JWTTokenServiceImpl jwtTokenUtil;
     private final UserDBAccess userDBAccess;
 
-    public JWTAuthenticationFilter(JWTTokenService jwtTokenUtil,
+    public JWTAuthenticationFilter(JWTTokenServiceImpl jwtTokenUtil,
     		UserDBAccess userRepo) {
         this.jwtTokenUtil = jwtTokenUtil;
         this.userDBAccess = userRepo;

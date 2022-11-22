@@ -11,34 +11,31 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
-import com.spfwproject.quotes.constants.Roles;
 import com.spfwproject.quotes.entities.PrivilegeEntity;
 import com.spfwproject.quotes.entities.RoleEntity;
 import com.spfwproject.quotes.entities.UserEntity;
 import com.spfwproject.quotes.exceptions.UserNotFoundException;
+import com.spfwproject.quotes.interfaces.UserService;
 import com.spfwproject.quotes.models.UserDetailsRequest;
 import com.spfwproject.quotes.repositories.RoleRepository;
 import com.spfwproject.quotes.repositories.UserRepository;
-import com.spfwproject.quotes.validators.UserDetailsValidator;
 
 @Component
-public class UserService {
+public class UserServiceImpl implements UserService {
 	@Autowired
 	private final UserRepository userRepository;
 
 	@Autowired
 	private final RoleRepository roleRepository;
-	
 
-	private Logger logger = LoggerFactory.getLogger(UserService.class);
+	private Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
 
-	public UserService(UserRepository userRepo, RoleRepository roleRepo) {
+	public UserServiceImpl(UserRepository userRepo, RoleRepository roleRepo) {
 		this.userRepository = userRepo;
 		this.roleRepository = roleRepo;
 	}
@@ -69,12 +66,12 @@ public class UserService {
 		logger.info("Entered " + methodName + ", attempting to retrieve user with username: " + username);
 
 		UserEntity user = userRepository.findUserByUsername(username);
-		
+
 		if (user == null) {
 			throw new UsernameNotFoundException("Problem during authentication!");
 		}
-		
-		//user.setRoles(getAuthorities());
+
+		// user.setRoles(getAuthorities());
 		logger.info("Exiting method " + methodName + ".");
 		return user;
 
@@ -91,7 +88,7 @@ public class UserService {
 		logger.info("Entered " + methodName);
 
 		RoleEntity userRole = roleRepository.findByName("USER");
-        user.setRoles(Arrays.asList(userRole));
+		user.setRoles(Arrays.asList(userRole));
 		UserEntity createdUser = userRepository.save(user);
 
 		logger.info("Exiting method " + methodName + ", successfully created user.");
@@ -103,21 +100,21 @@ public class UserService {
 		logger.info("Entered " + methodName);
 		Long id = userUpdateDetails.getId();
 
-    	// TODO: if update contians password, generate new hashed password and salt
+		// TODO: if update contians password, generate new hashed password and salt
 
-		
 		// TODO: use setUpdateUserDetails
 		UserEntity currentUserEntity = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
-		//UserEntity updatedUserEntity = setUpdateUserDetails(userUpdateDetails, currentUserEntity);
-		
+		// UserEntity updatedUserEntity = setUpdateUserDetails(userUpdateDetails,
+		// currentUserEntity);
+
 		userRepository.save(currentUserEntity);
 
 		logger.info("Exiting method " + methodName + ".");
 		return currentUserEntity;
 	}
-	
+
 	private UserEntity setUpdateUserDetails(UserDetailsRequest updaterDetails, UserEntity currentEntity) {
-		//TODO: finish this...
+		// TODO: finish this...
 		return null;
 	}
 
@@ -130,15 +127,14 @@ public class UserService {
 		logger.info("Exiting method " + methodName + ".");
 		return true;
 	}
-	
-	private Set<SimpleGrantedAuthority> getAuthority(UserEntity user) {
-        Set<SimpleGrantedAuthority> authorities = new HashSet<>();
-        user.getRoles().forEach(role -> {
-            authorities.add(new SimpleGrantedAuthority("ROLE_" + role.getName()));
-        });
-        return authorities;
-    }
 
+	private Set<SimpleGrantedAuthority> getAuthority(UserEntity user) {
+		Set<SimpleGrantedAuthority> authorities = new HashSet<>();
+		user.getRoles().forEach(role -> {
+			authorities.add(new SimpleGrantedAuthority("ROLE_" + role.getName()));
+		});
+		return authorities;
+	}
 
 	private Collection<? extends GrantedAuthority> getAuthorities(Collection<RoleEntity> roles) {
 		return getGrantedAuthorities(getPrivileges(roles));

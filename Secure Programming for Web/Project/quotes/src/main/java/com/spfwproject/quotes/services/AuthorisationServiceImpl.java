@@ -10,18 +10,19 @@ import org.springframework.stereotype.Component;
 
 import com.spfwproject.quotes.entities.UserEntity;
 import com.spfwproject.quotes.exceptions.NonEntityOwnerAuthorisationException;
+import com.spfwproject.quotes.interfaces.AuthorisationService;
 
 @Component
-public class AuthorisationService {
-	private Logger logger = LoggerFactory.getLogger(AuthorisationService.class);
-	
+public class AuthorisationServiceImpl implements AuthorisationService {
+	private Logger logger = LoggerFactory.getLogger(AuthorisationServiceImpl.class);
+
 	public void isAuthenticatedUserAuthorizedToActOnEntity(Long id) throws NonEntityOwnerAuthorisationException {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    	UserEntity authenticatedUser = (UserEntity)authentication.getPrincipal();
-    
-    	if (!Objects.equals(id, authenticatedUser.getId())) {
-    		throw new NonEntityOwnerAuthorisationException(id);
-    	}
+		UserEntity authenticatedUser = (UserEntity) authentication.getPrincipal();
+
+		if (!Objects.equals(id, authenticatedUser.getId())) {
+			throw new NonEntityOwnerAuthorisationException(id);
+		}
 	}
 
 }

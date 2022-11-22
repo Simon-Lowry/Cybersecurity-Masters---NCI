@@ -9,12 +9,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import com.spfwproject.quotes.entities.UserEntity;
-import com.spfwproject.quotes.services.UserService;
+import com.spfwproject.quotes.services.UserServiceImpl;
 
 @SpringBootTest
 public class UserServiceComponentTest {
 	@Autowired
-	private UserService userService;
+	private UserServiceImpl userService;
 
 	// (Long id, String name, String username, String password, String salt, boolean
 	// accountLocked,

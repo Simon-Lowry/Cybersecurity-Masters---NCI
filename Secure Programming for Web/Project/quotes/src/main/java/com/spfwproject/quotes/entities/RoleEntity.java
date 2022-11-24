@@ -13,6 +13,7 @@ import javax.persistence.Table;
 import javax.validation.constraints.NotEmpty;
 
 import com.spfwproject.quotes.constants.Roles;
+import com.spfwproject.quotes.exceptions.PrivilegeEscalationException;
 
 @Entity
 @Table(name = "Roles")
@@ -51,7 +52,16 @@ public class RoleEntity {
 		return name;
 	}
 
-	public void setName(String name) {
+	public void setName(String newRoleName) {
+		
+		// check for attempted change from user role to any other role
+		if (this.name != null && 
+			this.name.equals(Roles.USER.toString()) && 
+			newRoleName.equals(Roles.USER.toString()) == false) 
+		{
+			throw new PrivilegeEscalationException();
+		}
+		
 		Roles role = Roles.valueOf(name);
 		this.name = role.toString();
 	}

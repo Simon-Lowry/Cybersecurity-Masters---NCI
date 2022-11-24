@@ -3,6 +3,10 @@ package com.spfwproject.quotes.integrationtests;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.hamcrest.CoreMatchers.*;
+
+
 
 import java.util.ArrayList;
 
@@ -20,6 +24,7 @@ import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -151,13 +156,6 @@ public class AuthenticationControllerIntegrationTest {
 	@WithAnonymousUser
 	void testLogin_WithLegitCredentials_ThrowSucceed() throws JsonProcessingException, Exception {
 		logger.info("Enter legit login: ");
-	/*
-		UserEntity user = (UserEntity) userDetailsService.loadUserByUsername("john@gmail.com");
-		String password = "Passcword123";
-		UserDetailsRequest userUpdateDetails = new UserDetailsRequest();
-		userUpdateDetails.setPassword(password);
-		userService.updateUser(userUpdateDetails);
-		*/
 		String password = "Passcword123&$";
 		
 		LoginRequest loginRequest = new LoginRequest("john@gmail.com",password);
@@ -186,6 +184,40 @@ public class AuthenticationControllerIntegrationTest {
 		// TODO: check dups username is working, add in cleanup after each signup to
 		// delete the entry
 	}
+	
+	@Test
+	@WithAnonymousUser
+	void testLogin_WithBadCredentialsFourTimes_ThenExpectAccountTobeLocked() throws JsonProcessingException, Exception {
+		LoginRequest loginRequest = new LoginRequest("simon@gmail.com", "JAmmm9$iijsjskskkkk");
+		ResultActions resultActions = mockMvc.perform(post("/auth/login").contentType(MediaType.APPLICATION_JSON)
+				.content(objectMapper.writeValueAsString(loginRequest))).andExpect(status().isUnauthorized());
+		MvcResult result = resultActions.andReturn();
+		logger.info("status of bad creds test 1: " + result.getResponse().getContentAsString());
+
+		resultActions = mockMvc.perform(post("/auth/login").contentType(MediaType.APPLICATION_JSON)
+				.content(objectMapper.writeValueAsString(loginRequest))).andExpect(status().isUnauthorized());
+		result = resultActions.andReturn();
+		logger.info("status of bad creds test 2: " + result.getResponse().getContentAsString());
+		
+		resultActions = mockMvc.perform(post("/auth/login").contentType(MediaType.APPLICATION_JSON)
+				.content(objectMapper.writeValueAsString(loginRequest)))
+				.andDo(MockMvcResultHandlers.print())
+				.andExpect(status().isUnauthorized());
+			//	.andExpect(unauthenticated());
+
+		result = resultActions.andReturn();
+		logger.info("status of bad creds test 3: " + result.getResponse().getContentAsString());
+	
+		resultActions = mockMvc.perform(post("/auth/login").contentType(MediaType.APPLICATION_JSON)
+				.content(objectMapper.writeValueAsString(loginRequest)))
+				.andDo(MockMvcResultHandlers.print())
+				.andExpect(status().isUnauthorized())
+				.andExpect(content().string("Login attempts have exceeded limit. Account is now blocked."));
+                										
+		result = resultActions.andReturn();
+		logger.info("status of bad creds test 4: " + result.getResponse().getContentAsString());
+	}
+
 
 	private String expectBadRequestException(UserDetailsRequest signUpForm) throws JsonProcessingException, Exception {
 		ResultActions resultActions = mockMvc.perform(post("/auth/signUp").contentType(MediaType.APPLICATION_JSON)

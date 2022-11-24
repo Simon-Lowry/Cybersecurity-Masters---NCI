@@ -117,6 +117,18 @@ public class UserServiceImpl implements UserService {
 		// TODO: finish this...
 		return null;
 	}
+	
+	public UserEntity lockUserAccount(Long id) {
+		final String methodName = "lockUserAccount";
+		logger.info("Entered " + methodName);
+
+		UserEntity currentUserEntity = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));		
+		currentUserEntity.setAccountLocked(true);
+		userRepository.save(currentUserEntity);
+
+		logger.info("Exiting method " + methodName + ".");
+		return currentUserEntity;
+	}
 
 	public boolean deleteUser(Long id, String userPassword) {
 		final String methodName = "deleteUser";

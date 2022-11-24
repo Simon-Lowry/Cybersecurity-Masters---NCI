@@ -1,25 +1,31 @@
 package com.spwproject.quotes.dbaccesslayer;
 
+import java.util.Optional;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import com.spfwproject.quotes.entities.LoginAttemptsEntity;
 
 import com.spfwproject.quotes.repositories.LoginAttemptsRepository;
 
+@Component
 public class LoginAttemptsDBAccess {
 	private Logger logger = LoggerFactory.getLogger(LoginAttemptsDBAccess.class);
 
-	private final LoginAttemptsRepository loginAttemptsRepository;
-
-	public LoginAttemptsDBAccess(LoginAttemptsRepository loginAttemptsRepository) {
-		this.loginAttemptsRepository = loginAttemptsRepository;
+	@Autowired
+	private LoginAttemptsRepository loginAttemptsRepository;
+	  
+	public Optional<LoginAttemptsEntity> getAttemptsByUsername(String username) {
+		  return loginAttemptsRepository.getAttemptsByUsername(username); 
 	}
-
-	/*
-	 * 
-	 * public Optional<LoginAttemptsEntity> getAttemptsByUsername(Long userId) {
-	 * return loginAttemptsRepository.findAttemptsByUserId(userId); }
-	 * 
-	 * public void deleteLoginAttempts(List<Integer> listOfLoginAttemptIds) {
-	 * loginAttemptsRepository.deleteAllById(listOfLoginAttemptIds); }
-	 */
+	
+	public void saveAttemptsToDb(LoginAttemptsEntity loginAttempts) {
+		loginAttemptsRepository.save(loginAttempts);
+	}
+	  
+//	  public void deleteLoginAttempts(List<Integer> listOfLoginAttemptIds) {
+//	  loginAttemptsRepository.deleteAllById(listOfLoginAttemptIds); }
+	 
 }

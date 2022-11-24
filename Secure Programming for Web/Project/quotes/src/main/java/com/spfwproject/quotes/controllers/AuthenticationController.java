@@ -106,7 +106,7 @@ public class AuthenticationController {
 	}
 
 	 @PostMapping("login")
-	 public ResponseEntity<UserResponse> login(@RequestBody @Valid LoginRequest request) {
+	 public ResponseEntity<Object> login(@RequestBody @Valid LoginRequest request) {
 	        try {
 	            Authentication authentication = authenticationService
 	                .authenticate(
@@ -118,7 +118,7 @@ public class AuthenticationController {
 
 	            logger.info("Made it to response entity on login!");
 
-	            ResponseEntity<UserResponse> response = ResponseEntity.ok()
+	            ResponseEntity<Object> response = ResponseEntity.ok()
 	                .header(
 	                    HttpHeaders.AUTHORIZATION,
 	                    jwtTokenService.generateToken(authentication)
@@ -126,8 +126,9 @@ public class AuthenticationController {
 	                ).body(new UserResponse(null, null, null, null, null));
 		        return response;
 
-	        } catch (BadCredentialsException ex) {
-	            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+	        } catch (Exception ex) {
+	            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+	            		.body(ex.getMessage());
 	        }
 	}
 

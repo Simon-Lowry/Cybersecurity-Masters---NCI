@@ -19,7 +19,9 @@ import org.springframework.security.authentication.AuthenticationManager;
 
 import com.spfwproject.quotes.services.AuthenticationServiceImpl;
 import com.spfwproject.quotes.services.JWTTokenServiceImpl;
-import com.spwproject.quotes.dbaccesslayer.UserDBAccess;
+import com.spwproject.quotes.dbaccesslayer.UserDBAccess; 
+import com.spwproject.quotes.dbaccesslayer.LoginAttemptsDBAccess;
+
 
 @Configuration
 @EnableWebSecurity
@@ -91,6 +93,11 @@ public class SecurityConfig {
 	public PasswordEncoder encoder() {
 		 int strength = 10; // work factor of bcrypt
 	    return new BCryptPasswordEncoder(strength, new SecureRandom());
+	}
+	
+	@Bean
+	public LoginAttemptsDBAccess loginAttemptsDBAccess() {
+		return new LoginAttemptsDBAccess();
 	}
 	
 }

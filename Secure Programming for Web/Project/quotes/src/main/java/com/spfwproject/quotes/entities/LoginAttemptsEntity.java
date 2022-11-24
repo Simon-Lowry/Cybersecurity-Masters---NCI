@@ -8,6 +8,7 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.validation.constraints.NotEmpty;
 
+
 @Entity
 @Table(name = "Login_Attempts")
 public class LoginAttemptsEntity {
@@ -15,11 +16,15 @@ public class LoginAttemptsEntity {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int id;
 	@NotEmpty
-	private Long userId;
+	private String username;
 
-	@Column(name = "login_attempt_id")
 	private int attempts;
-
+	
+	public LoginAttemptsEntity (String username) {
+		this.username = username;
+		this.attempts = 0;
+	}
+	
 	public int getId() {
 		return id;
 	}
@@ -28,12 +33,12 @@ public class LoginAttemptsEntity {
 		this.id = id;
 	}
 
-	public Long getUserid() {
-		return userId;
+	public String getUsername() {
+		return username;
 	}
 
-	public void setUserId(Long userId) {
-		this.userId = userId;
+	public void setUsername(String username) {
+		this.username = username;
 	}
 
 	public int getAttempts() {
@@ -42,6 +47,10 @@ public class LoginAttemptsEntity {
 
 	public void setAttempts(int attempts) {
 		this.attempts = attempts;
+	}
+	
+	public void incrementAtttempts() {
+		this.attempts++;
 	}
 
 }

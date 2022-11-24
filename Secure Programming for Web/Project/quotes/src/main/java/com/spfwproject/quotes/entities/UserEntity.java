@@ -173,14 +173,6 @@ public class UserEntity extends User {
 		this.quotes = quotes;
 	}
 
-	public LoginAttemptsEntity getLoginAttempts() {
-		return loginAttempts;
-	}
-
-	public void setLoginAttempts(LoginAttemptsEntity loginAttempts) {
-		this.loginAttempts = loginAttempts;
-	}
-
 	public UserEntity convertToUserEntityWithAuthorities() {
 		ArrayList<SimpleGrantedAuthority> authorities = new ArrayList<>();
 		getRoles().forEach(role -> {

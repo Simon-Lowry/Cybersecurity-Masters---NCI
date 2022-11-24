@@ -1,11 +1,13 @@
 package com.spfwproject.quotes.services;
 
+import com.spfwproject.quotes.entities.LoginAttemptsEntity;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.Random;
 
 import javax.crypto.SecretKeyFactory;
@@ -23,44 +25,34 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import com.spfwproject.quotes.entities.UserEntity;
+import com.spfwproject.quotes.exceptions.LoginAttemptsLimitReachedException;
 import com.spfwproject.quotes.interfaces.AuthenticationService;
 import com.spfwproject.quotes.models.UserDetailsRequest;
 import com.spfwproject.quotes.validators.UserDetailsValidator;
+import com.spwproject.quotes.dbaccesslayer.LoginAttemptsDBAccess;
 
 @Component
 public class AuthenticationServiceImpl implements AuthenticationProvider, AuthenticationService {
 	private Logger logger = LoggerFactory.getLogger(AuthenticationServiceImpl.class);
 
 	private static final Random RANDOM = new SecureRandom();
-	private static final int ITERATIONS = 1; // TODO: decide on value, was 1000
-	private static final int KEY_LENGTH = 256;
+	private static final int ATTEMPTS_LIMIT = 3; 
 
 	@Autowired
 	private UserServiceImpl userService;
 
 	@Autowired
 	private PasswordEncoder bcryptEncoder;
+	
+	@Autowired 
+    private LoginAttemptsDBAccess loginAttemptsDbAccess; 
 
-	public AuthenticationServiceImpl(UserServiceImpl userService, PasswordEncoder bcryptEncoder) {
+
+	public AuthenticationServiceImpl(UserServiceImpl userService, PasswordEncoder bcryptEncoder,
+			LoginAttemptsDBAccess loginAttemptsDbAccess) {
 		this.userService = userService;
 		this.bcryptEncoder = bcryptEncoder;
-	}
-
-	public ArrayList<byte[]> generatePasswordHashWithSalt(char[] passwordAsCharArray) {
-		final String methodName = "isExpectedPassword";
-		logger.info("Entering " + methodName);
-		byte[] salt = getNextSalt();
-
-		byte[] passwordHash = generatePasswordWithPDKDF2(passwordAsCharArray, salt);
-
-		ArrayList<byte[]> passwordAndSalt = new ArrayList<byte[]>(2);
-		passwordAndSalt.add(passwordHash);
-		passwordAndSalt.add(salt);
-
-		logger.info("Password:  " + passwordHash.toString() + " salt: " + salt.toString());
-
-		logger.info("Exiting " + methodName);
-		return passwordAndSalt;
+		this.loginAttemptsDbAccess = loginAttemptsDbAccess;
 	}
 
 	/**
@@ -74,15 +66,6 @@ public class AuthenticationServiceImpl implements AuthenticationProvider, Authen
 		return salt;
 	}
 
-	private byte[] generatePasswordWithPDKDF2(final char[] password, byte[] salt) {
-		try {
-			return SecretKeyFactory.getInstance("PBKDF2WithHmacSha1")
-					.generateSecret(new PBEKeySpec(password, salt, ITERATIONS, KEY_LENGTH)).getEncoded();
-		} catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
-			throw new RuntimeException(e);
-		}
-	}
-
 	public String generatePasswordWithBCrypt(String plainPassword) {
 		String encodedPassword = bcryptEncoder.encode(plainPassword);
 
@@ -92,37 +75,11 @@ public class AuthenticationServiceImpl implements AuthenticationProvider, Authen
 		return encodedPassword;
 	}
 
-	public boolean isExpectedPassword(char[] password, byte[] salt, byte[] expectedPasswordHash) {
-		final String methodName = "isExpectedPassword";
-		logger.info("Entering " + methodName);
-
-		byte[] pwdHash = generatePasswordWithPDKDF2(password, salt);
-		Arrays.fill(password, Character.MIN_VALUE);
-
-		logger.info("Actual Password: " + pwdHash);
-		logger.info("Expected Password: " + expectedPasswordHash);
-
-		if (pwdHash.length != expectedPasswordHash.length) {
-			logger.info("Exiting " + methodName + ", password did not match expected password.");
-			return false;
-		}
-
-		for (int i = 0; i < pwdHash.length; i++) {
-			if (pwdHash[i] != expectedPasswordHash[i]) {
-				logger.info("Exiting " + methodName + ", password did not match expected password.");
-				return false;
-			}
-		}
-
-		logger.info("Exiting " + methodName + ", password matched expected password.");
-		return true;
-	}
+	
 
 	public boolean isExpectedPassword(String enteredPassword, String encodedPassword) {
 		// String enteredPasswordHashed = bcryptEncoder.encode(enteredPassword);
-		logger.info("Actual Password: " + encodedPassword);
-		logger.info("Expected Password: " + enteredPassword);
-
+		// TODO: add logs
 		return bcryptEncoder.matches(enteredPassword, encodedPassword);
 	}
 
@@ -154,22 +111,53 @@ public class AuthenticationServiceImpl implements AuthenticationProvider, Authen
 
 		logger.info("in authenticate pre get userbyusername");
 		UserEntity user = userService.getUserByUsername(username);
+		
+		LoginAttemptsEntity loginAttempts = processAttemptedLogins(username);
 
-		if (isExpectedPassword(password, user.getPassword())) {
+		if (isExpectedPassword(password, user.getPassword())) { // successful login
 			logger.info("Exiting " + methodName);
 
 			// TODO: need to add roles to authorities instead of empty list
 			return new UsernamePasswordAuthenticationToken(user, password, Collections.emptyList());
-		} else {
-
+		} else { // failed login
+			loginAttempts.incrementAtttempts();
+			isOverAttemptedLoginsLimit(loginAttempts);
+			loginAttemptsDbAccess.saveAttemptsToDb(loginAttempts);
 			logger.info("Exiting " + methodName + ", throwing exception");
-			throw new BadCredentialsException("External system authentication failed");
+			throw new BadCredentialsException("Authentication failed." + 
+					(4 - loginAttempts.getAttempts()) + " remaining attempts.");
 		}
 	}
 
 	@Override
 	public boolean supports(Class<?> authenticationType) {
 		return authenticationType.equals(UsernamePasswordAuthenticationToken.class);
+	}
+	
+	public LoginAttemptsEntity processAttemptedLogins(String username) throws LoginAttemptsLimitReachedException {
+		Optional<LoginAttemptsEntity> 
+	      userAttempts = loginAttemptsDbAccess.getAttemptsByUsername(username); 
+		
+		LoginAttemptsEntity attempts = null;
+		if (userAttempts.isPresent()) {
+			 attempts = userAttempts.get();
+			 isOverAttemptedLoginsLimit(attempts);
+		} else {
+			 attempts = new LoginAttemptsEntity(username);
+		}
+		return  attempts;
+	}
+	
+	private void isOverAttemptedLoginsLimit(LoginAttemptsEntity attemptsEntity) {
+		int currentNumAttempts = attemptsEntity.getAttempts();
+		
+		 logger.info("CURRENT ATTEMPTS: " + currentNumAttempts);
+		if (attemptsEntity.getAttempts() > 3) {
+			//TODO: set user to disabled, log failure and throw exception
+			logger.info("Exception occured: " + 
+			"Login attempts have exceeded limit. Account is now blocked.");
+			throw new LoginAttemptsLimitReachedException();
+		} 
 	}
 
 }

@@ -90,38 +90,17 @@ public class AuthenticationServiceComponentTest {
 	}
 		
 	@Test
-	void testGeneratePasswordHashWithSalt() {
+	void testGeneratePasswordHashAndIsPasswordEquals() {
 		String password = "SomePassword";
-		char[] passwordAsCharArray = password.toCharArray();
 		
-		ArrayList<byte[]> result = authenticationService.generatePasswordHashWithSalt(passwordAsCharArray);
-	
+		String result = authenticationService.generatePasswordWithBCrypt(password);
 		assertNotNull(result);
-		assertEquals(result.get(0).length, 32);
 		
-		byte[] hashedPassword = result.get(0);
-		byte[] salt = result.get(1);
 		
-		// ensure password generated with hash matches when generated twice with the same salt
-		boolean isEqualPassword = authenticationService.isExpectedPassword(passwordAsCharArray, salt, hashedPassword);
+		// ensure password generated with hash matches when generated 
+		boolean isEqualPassword = authenticationService.isExpectedPassword(password, result);
 		assertTrue(isEqualPassword);
 	}
 	
-	
-	void testIsExpectedPassword() {
-		String password = "SomePassword";
-		char[] passwordAsCharArray = password.toCharArray();
-		
-		ArrayList<byte[]> result = authenticationService.generatePasswordHashWithSalt(passwordAsCharArray);
 
-		byte[] hashedPassword = result.get(0);
-		byte[] salt = null;
-
-
-		// legitimate password but null salt
-		boolean isEqualPassword = authenticationService.isExpectedPassword(passwordAsCharArray, salt, hashedPassword);
-		assertFalse(isEqualPassword);
-		
-	
-	}
 }

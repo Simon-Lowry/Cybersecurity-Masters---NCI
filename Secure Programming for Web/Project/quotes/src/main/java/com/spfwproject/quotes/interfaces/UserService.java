@@ -19,7 +19,9 @@ public interface UserService {
 
 	public UserEntity createUser(UserEntity user) throws URISyntaxException;
 
-	public UserEntity updateUser(UserDetailsRequest userUpdateDetails);
+	public UserEntity updateUser(UserEntity updaterUserEntity, boolean isAccountLockedUpdated);
 
 	public boolean deleteUser(Long id, String userPassword);
+	
+	public Long getUserIdByUsername(String username) throws UsernameNotFoundException;
 }

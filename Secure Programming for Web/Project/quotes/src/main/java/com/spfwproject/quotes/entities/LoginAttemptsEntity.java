@@ -20,6 +20,8 @@ public class LoginAttemptsEntity {
 
 	private int attempts;
 	
+	public LoginAttemptsEntity() {}
+	
 	public LoginAttemptsEntity (String username) {
 		this.username = username;
 		this.attempts = 0;

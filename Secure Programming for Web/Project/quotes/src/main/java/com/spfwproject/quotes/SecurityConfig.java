@@ -1,6 +1,8 @@
 package com.spfwproject.quotes;
 
 import java.security.SecureRandom;
+import java.util.Arrays;
+import java.util.Collections;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -14,6 +16,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.security.authentication.AuthenticationManager;
 
 
@@ -47,11 +52,15 @@ public class SecurityConfig {
 
 	@Bean
 	protected SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-		http.httpBasic().and().cors().and().csrf().disable().sessionManagement().invalidSessionUrl(LOGIN_URI)
+		http.csrf().disable().sessionManagement().invalidSessionUrl(LOGIN_URI)
 				.maximumSessions(1).and().sessionFixation().newSession().and().logout().logoutUrl(LOGOUT_URI)
 				.logoutSuccessUrl(LOGIN_URI).deleteCookies(JSESSIONID);
 		
-		http.authorizeRequests()
+		http
+		.httpBasic()
+	    .authenticationEntryPoint(new NoPopupBasicAuthenticationEntryPoint())
+	    .and()
+		.authorizeRequests()
 		.mvcMatchers("/admin/**").hasRole("ADMIN")
 		.mvcMatchers("/auth/logout").hasRole("USER")
 		.mvcMatchers("/quotes/**").hasRole("USER")
@@ -65,8 +74,25 @@ public class SecurityConfig {
         	authenticationTokenFilterBean(),
             UsernamePasswordAuthenticationFilter.class
         );
+        
+        http.cors();
 		return http.build();
 	}
+	
+
+	@Bean
+	public CorsConfigurationSource corsConfigurationSource() {
+	    CorsConfiguration configuration = new CorsConfiguration();	   
+	    configuration.setAllowedOrigins(Collections.singletonList("http://localhost:3000"));
+	    configuration.setAllowedMethods(Arrays.asList("GET","POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+	    configuration.setExposedHeaders(Arrays.asList("*"));
+	    configuration.setAllowedHeaders(Arrays.asList("Authorization", "content-type"));
+	    configuration.setAllowCredentials(true);	 
+
+	    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+	    source.registerCorsConfiguration("/**", configuration);
+	    return source;
+	}	
 	
 	@Bean
 	public DaoAuthenticationProvider authProvider(UserDBAccess userDetailsService) {

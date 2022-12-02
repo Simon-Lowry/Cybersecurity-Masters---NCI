@@ -44,9 +44,9 @@ public class UserController {
 		final String methodName = "getUser";
 		logger.info("Entered " + methodName + ", retrieving user with id: " + id);
 
+		// check logged in user is the user that the request is looking to retrieve
 		authorisationService.isAuthenticatedUserAuthorizedToActOnEntity(id);
 
-		// TODO: is user authorized to retrieve given user's information
 		UserEntity user = null;
 		try {
 			user = userService.getUser(id);
@@ -64,17 +64,18 @@ public class UserController {
 	public ResponseEntity updateUser(@RequestBody UserDetailsRequest user)
 			throws URISyntaxException, NonEntityOwnerAuthorisationException {
 		final String methodName = "updateUser";
-		logger.info("Entered " + methodName);
+		logger.info("Entered " + methodName + " with user: " + user);
 
 		authorisationService.isAuthenticatedUserAuthorizedToActOnEntity(user.getId());
 
 		UserDetailsValidator validator = new UserDetailsValidator(user);
 		validator.validate();
 		if (validator.containsErrors()) {
-			logger.info("Exiting method, exception bad request" + methodName + ".");
+			logger.error("Exiting method, exception bad request" + methodName + ".");
 			return ResponseEntity.badRequest().body(validator.getListOfErrors());
 		}
-		UserEntity updatedUser = userService.updateUser(user);
+		UserEntity updaterUser = user.convertUserDetailsToUserEntity();
+		UserEntity updatedUser = userService.updateUser(updaterUser, false);
 		ResponseEntity response = ResponseEntity.ok(user);
 
 		logger.info("Exiting method " + methodName + ".");
@@ -89,7 +90,6 @@ public class UserController {
 
 		authorisationService.isAuthenticatedUserAuthorizedToActOnEntity(userDetails.getId());
 
-		// TODO: user is authenticated
 		// TODO: user has entered password and password has been validateds
 		// TODO: delete roles & quotes
 

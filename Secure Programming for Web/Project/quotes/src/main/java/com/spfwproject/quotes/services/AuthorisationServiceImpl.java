@@ -17,9 +17,13 @@ public class AuthorisationServiceImpl implements AuthorisationService {
 	private Logger logger = LoggerFactory.getLogger(AuthorisationServiceImpl.class);
 
 	public void isAuthenticatedUserAuthorizedToActOnEntity(Long id) throws NonEntityOwnerAuthorisationException {
+		final String  methodName = "isAuthenticatedUserAuthorizedToActOnEntity";
+		logger.info("Entered method: " + methodName);
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		UserEntity authenticatedUser = (UserEntity) authentication.getPrincipal();
-
+		
+		logger.info("Is user with id " + authenticatedUser.getId() + " able to act on entity with owner id "
+				+ id);
 		if (!Objects.equals(id, authenticatedUser.getId())) {
 			throw new NonEntityOwnerAuthorisationException(id);
 		}

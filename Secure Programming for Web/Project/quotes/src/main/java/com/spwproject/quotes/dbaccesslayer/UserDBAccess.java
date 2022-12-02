@@ -20,14 +20,17 @@ public class UserDBAccess implements UserDetailsService {
 
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+		final String methodName = "loadUserByUsername";
+		logger.info("Entered method: " + methodName + " with username:  " + username );
 		UserEntity user = userRepository.findUserByUsername(username);
 
-		if (user == null)
+		if (user == null) {
+			logger.info("User not found exception to be thrown." );
 			throw new UsernameNotFoundException("User not found!");
-			
-		UserEntity userWithRoles = user.convertToUserEntityWithAuthorities();
-
-		return userWithRoles;
+		}
+		
+		logger.info("Exiting method: " + methodName );
+		return user;
 	}
 
 }

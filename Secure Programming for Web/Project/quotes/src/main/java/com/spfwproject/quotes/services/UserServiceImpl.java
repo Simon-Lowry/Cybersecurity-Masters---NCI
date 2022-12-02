@@ -68,12 +68,30 @@ public class UserServiceImpl implements UserService {
 		UserEntity user = userRepository.findUserByUsername(username);
 
 		if (user == null) {
+			logger.info("Error occured in retrieving user.");
 			throw new UsernameNotFoundException("Problem during authentication!");
 		}
+		
+		logger.info("User retrieved: " + user.toString());
+		if (user.getRole() == null) {
+			logger.info("Error occured in retrieving user role.");
+			throw new UsernameNotFoundException("Issue obtaining role during authentication!");
+		}
 
-		// user.setRoles(getAuthorities());
 		logger.info("Exiting method " + methodName + ".");
 		return user;
+
+	}
+	
+	public Long getUserIdByUsername(String username) throws UsernameNotFoundException {
+		final String methodName = "getUser";
+		logger.info("Entered " + methodName + ", attempting to retrieve user id with username: " + username);
+
+		UserEntity user = getUserByUsername(username);
+		Long id = user.getId();
+		
+		logger.info("Exiting method " + methodName + "with id " + id + ".");
+		return user.getId();
 
 	}
 
@@ -88,34 +106,67 @@ public class UserServiceImpl implements UserService {
 		logger.info("Entered " + methodName);
 
 		RoleEntity userRole = roleRepository.findByName("USER");
-		user.setRoles(Arrays.asList(userRole));
+		logger.info("userRole is: " + (userRole == null ? "null" : "not null"));
+		logger.info("role is: " + userRole);
+
+		user.setRole(userRole);
 		UserEntity createdUser = userRepository.save(user);
 
 		logger.info("Exiting method " + methodName + ", successfully created user.");
 		return createdUser;
 	}
 
-	public UserEntity updateUser(UserDetailsRequest userUpdateDetails) {
+	// NOTE: be sure that you are sending the isLocked from the original entity if not changed
+	// otherwise, account locked can be unintentionally changed
+	public UserEntity updateUser(UserEntity updaterUserEntity, boolean isAccountLockedUpdated) {
 		final String methodName = "updateUser";
 		logger.info("Entered " + methodName);
-		Long id = userUpdateDetails.getId();
-
-		// TODO: if update contians password, generate new hashed password and salt
+		final Long id = updaterUserEntity.getId();
 
 		// TODO: use setUpdateUserDetails
 		UserEntity currentUserEntity = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
-		// UserEntity updatedUserEntity = setUpdateUserDetails(userUpdateDetails,
-		// currentUserEntity);
+		UserEntity updatedUserEntity = setUpdateUserDetails(updaterUserEntity, 
+				currentUserEntity, isAccountLockedUpdated);
 
-		userRepository.save(currentUserEntity);
+		userRepository.save(updatedUserEntity);
 
 		logger.info("Exiting method " + methodName + ".");
 		return currentUserEntity;
 	}
 
-	private UserEntity setUpdateUserDetails(UserDetailsRequest updaterDetails, UserEntity currentEntity) {
-		// TODO: finish this...
-		return null;
+	private UserEntity setUpdateUserDetails(UserEntity updaterDetails, UserEntity currentEntity, 
+			boolean isAccountLockedUpdated) {
+		// TODO: opt for hashmap of updated vars?
+		final String  password = updaterDetails.getPassword();
+		final String city = updaterDetails.getCity();
+		final String country = updaterDetails.getCountry();
+		final boolean isAccountLocked = updaterDetails.isAccountLocked();
+		
+		if (password != null && password.isBlank()) {
+			if (!currentEntity.getPassword().equals(password)) {
+				currentEntity.setPassword(password);
+			}
+		}
+		
+		if (city != null && city.isBlank()) {
+			if (!currentEntity.getCity().equals(city)) {
+				currentEntity.setCity(city);
+			}
+		}
+		
+		if (country != null && country.isBlank()) {
+			if (!currentEntity.getCountry().equals(country)) {
+				currentEntity.setCountry(country);
+			}
+		}
+		
+		if (isAccountLockedUpdated) {
+			if (!currentEntity.isAccountLocked() == isAccountLocked) {
+					currentEntity.setPassword(password);
+			}
+		}
+		
+		return currentEntity;
 	}
 	
 	public UserEntity lockUserAccount(Long id) {
@@ -140,6 +191,7 @@ public class UserServiceImpl implements UserService {
 		return true;
 	}
 
+	/*
 	private Set<SimpleGrantedAuthority> getAuthority(UserEntity user) {
 		Set<SimpleGrantedAuthority> authorities = new HashSet<>();
 		user.getRoles().forEach(role -> {
@@ -173,4 +225,5 @@ public class UserServiceImpl implements UserService {
 		}
 		return authorities;
 	}
+	*/
 }

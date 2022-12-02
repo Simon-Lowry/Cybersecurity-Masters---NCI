@@ -3,6 +3,7 @@ package com.spfwproject.quotes.entities;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -11,6 +12,8 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
+import javax.persistence.OneToOne;
+import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.Table;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
@@ -19,6 +22,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 
+import com.spfwproject.quotes.constants.Roles;
+import com.spfwproject.quotes.exceptions.PrivilegeEscalationException;
 import com.spfwproject.quotes.models.UserResponse;
 
 @Entity
@@ -29,12 +34,13 @@ public class UserEntity extends User {
 	@Id
 	@GeneratedValue
 	@NotNull
+	@Column(name = "user_id")
 	private Long id;
 
 	@NotEmpty
 	private String name;
 
-	@Column(name = "username")
+	@Column(name = "username", unique=true)
 	@NotEmpty
 	private String username;
 
@@ -51,12 +57,18 @@ public class UserEntity extends User {
 	@Column(name = "account_locked")
 	private boolean accountLocked;
 
-	@ManyToMany(fetch = FetchType.EAGER)
-	@JoinTable(name = "users_roles", joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"), inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id"))
-	private Collection<RoleEntity> roles;
+	@OneToOne()
+	@JoinTable(name = "User_Role", 
+		joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "user_id", unique = true), 
+		inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "role_id")
+	)
+	private RoleEntity role;
 
 	@ManyToMany
-	@JoinTable(name = "users_quotes", joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"), inverseJoinColumns = @JoinColumn(name = "quote_id", referencedColumnName = "id"))
+	@JoinTable(name = "users_quotes", 
+		joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "user_id"), 
+		inverseJoinColumns = @JoinColumn(name = "quote_id", referencedColumnName = "quote_id")
+	)
 	private Collection<QuoteEntity> quotes;
 
 	/*
@@ -85,8 +97,8 @@ public class UserEntity extends User {
 	}
 
 	public UserEntity(Long id, String name, String username, String password, String salt, boolean accountLocked,
-			String city, String country, ArrayList<SimpleGrantedAuthority> authorities) {
-		super(username, password, true, false, false, !accountLocked, authorities);
+			String city, String country, RoleEntity role) {
+		super(username, password, true, false, false, !accountLocked, new ArrayList<GrantedAuthority>());
 		this.name = name;
 		this.username = username;
 		this.password = password;
@@ -95,6 +107,7 @@ public class UserEntity extends User {
 		this.city = city;
 		this.country = country;
 		this.id = id;
+		setRole(role);
 	}
 
 	public Long getId() {
@@ -157,12 +170,20 @@ public class UserEntity extends User {
 		this.country = country;
 	}
 
-	public Collection<RoleEntity> getRoles() {
-		return roles;
+	public RoleEntity getRole() {
+		return role;
 	}
 
-	public void setRoles(Collection<RoleEntity> roles) {
-		this.roles = roles;
+	public void setRole(RoleEntity role) {
+		// check for attempted change from user role to any other role
+		if (this.role != null && this.role.getName() != null && 
+		    this.role.getName().equals(Roles.USER.toString()) && 
+		    role.equals(Roles.USER.toString()) == false) 
+		{
+			throw new PrivilegeEscalationException();
+		}
+				
+		this.role = role;
 	}
 
 	public Collection<QuoteEntity> getQuotes() {
@@ -173,15 +194,6 @@ public class UserEntity extends User {
 		this.quotes = quotes;
 	}
 
-	public UserEntity convertToUserEntityWithAuthorities() {
-		ArrayList<SimpleGrantedAuthority> authorities = new ArrayList<>();
-		getRoles().forEach(role -> {
-			authorities.add(new SimpleGrantedAuthority("ROLE_" + role.getName()));
-		});
-
-		return new UserEntity(id, name, username, password, salt, accountLocked, city, country, authorities);
-	}
-
 	public UserResponse convertUserEntityToUserResponse() {
 		return new UserResponse(getId(), getName(), getUsername(), getCity(), getCountry());
 	}
@@ -190,6 +202,6 @@ public class UserEntity extends User {
 	public String toString() {
 		return "User [id=" + id + ", name=" + name + ", username=" + username + ", city=" + city + ", country="
 				+ country + ", hashedPassword=" + password + ", salt=" + salt + ", accountLocked=" + accountLocked
-				+ "]";
+				+ ", Role: " + role.getName() + "]";
 	}
 }

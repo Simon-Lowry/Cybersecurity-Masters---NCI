@@ -1,5 +1,6 @@
 package com.spfwproject.quotes.entities;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
@@ -16,6 +17,7 @@ public class QuoteEntity {
 	@Id
 	@GeneratedValue
 	@NotNull
+	@Column(name="quote_id")
 	private Long id;
 
 	@NotNull

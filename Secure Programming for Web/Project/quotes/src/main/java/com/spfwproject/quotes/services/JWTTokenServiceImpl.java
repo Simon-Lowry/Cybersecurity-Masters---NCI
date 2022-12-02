@@ -1,6 +1,7 @@
 package com.spfwproject.quotes.services;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
@@ -63,6 +64,16 @@ public class JWTTokenServiceImpl implements Serializable, JWTTokenService {
 				.collect(Collectors.joining(","));
 
 		return Jwts.builder().setSubject(authentication.getName()).claim(AUTHORITIES_KEY, authorities)
+				.setIssuedAt(new Date(System.currentTimeMillis()))
+				.setExpiration(new Date(System.currentTimeMillis() + TOKEN_VALIDITY * 1000))
+				.signWith(SignatureAlgorithm.HS256, SIGNING_KEY).compact();
+	}
+	
+	public String generateToken(String username, Collection<GrantedAuthority> authoritiesAsCollection) {
+		String authorities = authoritiesAsCollection.stream().map(GrantedAuthority::getAuthority)
+				.collect(Collectors.joining(","));
+
+		return Jwts.builder().setSubject(username).claim(AUTHORITIES_KEY, authorities)
 				.setIssuedAt(new Date(System.currentTimeMillis()))
 				.setExpiration(new Date(System.currentTimeMillis() + TOKEN_VALIDITY * 1000))
 				.signWith(SignatureAlgorithm.HS256, SIGNING_KEY).compact();

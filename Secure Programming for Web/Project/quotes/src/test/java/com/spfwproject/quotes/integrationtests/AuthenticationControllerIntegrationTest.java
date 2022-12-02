@@ -49,20 +49,12 @@ public class AuthenticationControllerIntegrationTest {
 
 	private UserDetailsRequest signUpForm;
 	
-	@Autowired
-	private UserServiceImpl userService;
-
-	@Autowired
-	private UserDBAccess userDetailsService;
-	
-
 	private Logger logger = LoggerFactory.getLogger(AuthenticationControllerIntegrationTest.class);
 
 	@BeforeEach
 	void setup() {
 		signUpForm = new UserDetailsRequest("My Name", "myemail@mail.com", "Passcword123&$", "Passcword123&$", "Dublin",
 				"Ireland");
-
 	}
 
 	@Test
@@ -174,15 +166,10 @@ public class AuthenticationControllerIntegrationTest {
 		MvcResult result = resultActions.andReturn();
 		logger.info("status of bad creds test 1: " + result.getResponse());
 
-		loginRequest = new LoginRequest("Bjork", signUpForm.getPassword());
+		loginRequest = new LoginRequest("Bjork@gmail.com", signUpForm.getPassword());
 		resultActions = mockMvc.perform(post("/auth/login").contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(loginRequest))).andExpect(status().isUnauthorized());
 		result = resultActions.andReturn();
-
-		logger.info("status of bad creds test 2: " + result.getResponse());
-
-		// TODO: check dups username is working, add in cleanup after each signup to
-		// delete the entry
 	}
 	
 	@Test

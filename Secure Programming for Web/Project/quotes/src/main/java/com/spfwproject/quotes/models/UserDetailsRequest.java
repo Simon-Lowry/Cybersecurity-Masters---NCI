@@ -91,8 +91,12 @@ public class UserDetailsRequest {
 		this.id = id;
 	}
 
-	public UserEntity convertSignUpFormToUserEntity(String password, String salt) {
-		return new UserEntity(getName(), getUsername(), password, salt, false, getCity(), getCountry());
+	public UserEntity convertUserDetailsToUserEntity(String password) {
+		return new UserEntity(getName(), getUsername(), password, null, false, getCity(), getCountry());
+	}
+	
+	public UserEntity convertUserDetailsToUserEntity() {
+		return new UserEntity(getName(), getUsername(), getPassword(), null, false, getCity(), getCountry());
 	}
 
 	@Override

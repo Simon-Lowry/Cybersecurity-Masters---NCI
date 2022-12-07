@@ -15,5 +15,5 @@ public interface QuoteService {
 
 	public QuoteEntity getQuoteById(Long id);
 
-	public List<QuoteEntity> getQuotesForAUser();
+	public List<QuoteEntity> getQuotesForAUser(Long userId);
 }

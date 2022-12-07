@@ -21,12 +21,19 @@ public class QuoteEntity {
 	private Long id;
 
 	@NotNull
+	@Column(name="user_id")
 	private Long userId;
+	
 	@NotEmpty
+	@Column(name="quote_text")
 	private String quoteText;
+	
 	@NotEmpty
+	@Column(name="quote_privacy_setting")
 	private String quotePrivacySetting;
+	
 	@NotEmpty
+	@Column(name="quote_author")
 	private String quoteAuthor;
 
 	public QuoteEntity() {
@@ -60,8 +67,7 @@ public class QuoteEntity {
 	}
 
 	public void setQuoteText(String quoteText) {
-		QuotePrivacySettings role = QuotePrivacySettings.valueOf(quoteText);
-		this.quoteText = role.toString();
+		this.quoteText = quoteText;
 	}
 
 	public String getQuotePrivacySetting() {
@@ -69,6 +75,7 @@ public class QuoteEntity {
 	}
 
 	public void setQuotePrivacySetting(String quotePrivacySetting) {
+		//QuotePrivacySettings setting = QuotePrivacySettings.valueOf(quoteText);
 		this.quotePrivacySetting = quotePrivacySetting;
 	}
 

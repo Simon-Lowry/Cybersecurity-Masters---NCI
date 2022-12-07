@@ -21,7 +21,7 @@ public interface UserService {
 
 	public UserEntity updateUser(UserEntity updaterUserEntity, boolean isAccountLockedUpdated);
 
-	public boolean deleteUser(Long id, String userPassword);
+	public boolean deleteUser(Long id);
 	
 	public Long getUserIdByUsername(String username) throws UsernameNotFoundException;
 }

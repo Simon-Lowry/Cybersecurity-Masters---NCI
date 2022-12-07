@@ -99,15 +99,10 @@ public class PrivilegeEscalationAndRoutingComponentTest {
  				.andDo(MockMvcResultHandlers.print())
  				.andExpect(status().isUnauthorized()).andReturn();
  	    });
- 	 //   String expectedMessage = "For input string";
  	    String actualMessage = exception.getMessage();
  	    logger.info("Exception thrown message: " + actualMessage);
- 	//    assertTrue(actualMessage.contains(expectedMessage));
- 	//	contentAsString = result.getResponse().getContentAsString();
     	logger.info("Completed: check non-authenticated user can not reach admin page: " + contentAsString);
 
-    	
-    	
     	 assertThrows(MalformedTokenException.class, () ->{ 
         	 mockMvc.perform(get("/users/505"))
  				.andDo(MockMvcResultHandlers.print())
@@ -134,7 +129,7 @@ public class PrivilegeEscalationAndRoutingComponentTest {
     
     @Test
     @WithMockUser(username = "felord",password = "felord.cn",roles = {"ADMIN"})
-    public void requestProtectedUrlWithAdmin() throws Exception {
+    public void requestProtectedUrlsWithAdmin() throws Exception {
     	String testName = "requestProtectedUrlWithAdmin";
     	logger.info("Beginning test: " + testName);
     	
@@ -201,9 +196,19 @@ public class PrivilegeEscalationAndRoutingComponentTest {
     }
     
     @Test
-    public void givenUserRole_WhenAttemptingToChangeRole_ThrowPrivilegeBasedException()
+    public void givenUserRole_WhenAcessingUserAndQuotesAPIs_AllowActions() throws Exception
     {
-	    UserEntity user = (UserEntity) userDetailsService.loadUserByUsername("bart@gmail.com");
+    	String token = testUtils.generateUserToken("john@gmail.com");
+    	MvcResult result = mockMvc.perform(get("/users/505").header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+				.andDo(MockMvcResultHandlers.print())
+				.andExpect(status().isOk()).andReturn();
+    	logger.info("Completed: check non-authenticated user can not update any user");
+        
+    	assertThrows(MalformedTokenException.class, () ->{ 
+    		mockMvc.perform(delete("/users/505")).andExpect(status().isUnauthorized());
+ 	    });	
+	//    UserEntity user = (UserEntity) userDetailsService.loadUserByUsername("bart@gmail.com");
+
 	 //   ArrayList<RoleEntity> roles = user.getRoles();
 	   // for (int i = 0; i < )
     }

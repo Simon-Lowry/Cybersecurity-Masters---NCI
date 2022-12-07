@@ -7,6 +7,8 @@ public class QuoteRequest {
 	private String quoteAuthor;
 	private Long quoteId; 
 	
+	public QuoteRequest() {}
+
 	public QuoteRequest(Long userId, String quoteText, String quotePrivacySetting, String author) {
 		this.userId = userId;
 		this.quoteText = quoteText;
@@ -21,7 +23,6 @@ public class QuoteRequest {
 		this.quotePrivacySetting = quotePrivacySetting;
 		this.quoteAuthor = author;
 	}
-	
 	
 	public Long getUserId() {
 		return userId;
@@ -66,7 +67,7 @@ public class QuoteRequest {
 	@Override
 	public String toString() {
 		return "QuoteRequest [userId=" + userId + ", quoteText=" + quoteText + ", quotePrivacySetting="
-				+ quotePrivacySetting + "]";
+				+ quotePrivacySetting + ", quoteAuthor=" + quoteAuthor + ", quoteId=" + quoteId + "]";
 	}
 
 }

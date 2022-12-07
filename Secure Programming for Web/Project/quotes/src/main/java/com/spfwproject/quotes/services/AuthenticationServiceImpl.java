@@ -103,7 +103,8 @@ public class AuthenticationServiceImpl implements AuthenticationProvider, Authen
 		signUpFormValidator.validate();
 
 		if (userService.doesUsernameAlreadyExist(signupForm.getUsername())) {
-			if (!signUpFormValidator.getListOfErrors().contains("Invalid username.")) {
+			if (signUpFormValidator.containsErrors() && 
+					!signUpFormValidator.getListOfErrors().contains("Invalid username.")) {
 				signUpFormValidator.addErrorMessageToErrorList("Invalid username.");
 			}
 
@@ -132,6 +133,8 @@ public class AuthenticationServiceImpl implements AuthenticationProvider, Authen
 
 		if (!isUserAccountLocked && isExpectedPassword(password, user.getPassword())) { // successful login
 			logger.info("Exiting " + methodName + " in AuthService.");
+			loginAttempts.setAttempts(0);
+			loginAttemptsDbAccess.saveAttemptsToDb(loginAttempts);
 			return new UsernamePasswordAuthenticationToken(user, password, authoritiesList);
 		}else if (isUserAccountLocked) { // account locked, throw exception		
 			throw new LoginAttemptsLimitReachedException();

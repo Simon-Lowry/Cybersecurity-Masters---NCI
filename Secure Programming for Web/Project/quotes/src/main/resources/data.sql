@@ -1,5 +1,5 @@
-/* Sample data
- * 
+
+/*
 INSERT INTO Roles (role_id, name) VALUES (1, 'USER');
 INSERT INTO Roles (role_id, name) VALUES (2, 'ADMIN');
 
@@ -20,8 +20,18 @@ INSERT INTO User_Role (user_id, role_id) VALUES (505, 1); -- user John has role 
 INSERT INTO `User_Role` (`user_id`, `role_id`) VALUES (506, 1); -- user Simon has role USER
 INSERT INTO `User_Role` (`user_id`, `role_id`) VALUES (507, 1); -- user Bart has role USER
 INSERT INTO `User_Role` (`user_id`, `role_id`) VALUES (508, 2); -- user Jacob has role ADMIN
+
+
+
+INSERT INTO QUOTES	(quote_id, user_id, quote_text, quote_author,  quote_privacy_setting)
+VALUES(1000, 14, "Some quote here", "John Smith", "Private");
+INSERT INTO QUOTES	(quote_id, user_id, quote_text, quote_author, quote_privacy_setting) 
+VALUES(1001, 14, "Another quote here", "John Smith", "Private");
+INSERT INTO QUOTES	(quote_id, user_id, quote_text, quote_author, quote_privacy_setting) 
+VALUES(1002, 14, "Third quote here", "John Smith", "Private");
+
+
+
 */
-
-
 	
 	

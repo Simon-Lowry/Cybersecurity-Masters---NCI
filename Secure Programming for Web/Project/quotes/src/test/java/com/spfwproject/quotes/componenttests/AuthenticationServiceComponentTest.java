@@ -88,16 +88,34 @@ public class AuthenticationServiceComponentTest {
 		signUpForm.setPasswordRepeated(password);
 		return signUpForm;
 	}
-		
+	
+	// -------------------------------------------------
+	// Sample bcrypt password:
+	// $2a$10$R9h/cIPz0gi.URNNX3kh2OPST9/PgBkqquzi.Ss7KIUgO2t0jWMUW
+	//--------------------------------------------------
+	// first $ to second dollar sign contains the algorithm version used by the bcrpt encoder. Here that's 2a.
+	// Second dollar sign to third is cost/work factor used. Here that's 10 for the work factor.
+	// Beyond that is the hash and then the password. The salt will be random and the hash not predictable.
+	// Both the algorithm and the work factor's inclusion in the string can be checked.
 	@Test
-	void testGeneratePasswordHashAndIsPasswordEquals() {
+	void testGeneratePasswordHashAndItsContentsAndIsPlaintextPasswordHashedEqualsToIt() {
 		String password = "SomePassword";
 		
 		String result = authenticationService.generatePasswordWithBCrypt(password);
+		logger.info("Generated password hash: " + result);
 		assertNotNull(result);
 		
+		// check for algorithm
+		String algorithm = result.substring(0, 3);
+		logger.info("Algorithm: " + algorithm);
+		assertEquals(algorithm, "$2a");
 		
-		// ensure password generated with hash matches when generated 
+		// check for work factor
+		String workFactor = result.substring(3, 6);
+		logger.info("Work Factor: " + workFactor);
+		assertEquals(workFactor, "$10");
+		
+		// ensure password generated with bcrypt hash matches plaintext password hashed with bcrypt as well 
 		boolean isEqualPassword = authenticationService.isExpectedPassword(password, result);
 		assertTrue(isEqualPassword);
 	}

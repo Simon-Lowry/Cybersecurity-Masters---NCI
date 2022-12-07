@@ -27,6 +27,7 @@ public class AuthorisationServiceImpl implements AuthorisationService {
 		if (!Objects.equals(id, authenticatedUser.getId())) {
 			throw new NonEntityOwnerAuthorisationException(id);
 		}
+		logger.info("Authorization check complete: User is authorized to act on entity");
 	}
 
 }

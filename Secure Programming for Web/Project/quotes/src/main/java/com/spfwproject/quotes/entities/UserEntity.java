@@ -64,12 +64,13 @@ public class UserEntity extends User {
 	)
 	private RoleEntity role;
 
+	/*
 	@ManyToMany
 	@JoinTable(name = "users_quotes", 
 		joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "user_id"), 
 		inverseJoinColumns = @JoinColumn(name = "quote_id", referencedColumnName = "quote_id")
-	)
-	private Collection<QuoteEntity> quotes;
+	) */
+//	private Collection<QuoteEntity> quotes;
 
 	/*
 	 * @OneToOne
@@ -186,6 +187,7 @@ public class UserEntity extends User {
 		this.role = role;
 	}
 
+	/*
 	public Collection<QuoteEntity> getQuotes() {
 		return quotes;
 	}
@@ -193,6 +195,7 @@ public class UserEntity extends User {
 	public void setQuotes(Collection<QuoteEntity> quotes) {
 		this.quotes = quotes;
 	}
+	*/
 
 	public UserResponse convertUserEntityToUserResponse() {
 		return new UserResponse(getId(), getName(), getUsername(), getCity(), getCountry());

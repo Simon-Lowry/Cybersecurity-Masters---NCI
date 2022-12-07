@@ -4,12 +4,16 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -128,11 +132,23 @@ public class AuthenticationController {
 
 	}
 
+	/*
 	@PostMapping("logout")
-	public ResponseEntity performLogout(LoginRequest loginRequest) {
+	public ResponseEntity performLogout(HttpServletRequest request) {
 		ResponseEntity response = null;
+		HttpSession session= request.getSession(false);
+
+		SecurityContextHolder.clearContext();
+        session= request.getSession(false);
+       if(session != null) {
+           session.invalidate();
+       }
+       for(Cookie cookie : request.getCookies()) {
+           cookie.setMaxAge(0);
+       }
 
 		return (ResponseEntity) response.ok();
 	}
+	*/
 
 }

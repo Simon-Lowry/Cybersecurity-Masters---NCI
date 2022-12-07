@@ -23,16 +23,14 @@ public class QuoteServiceImpl implements QuoteService {
 		this.quoteRepository = quoteRepo;
 	}
 
-	// TODO: make this into a get all quotes by a given user
-	public List<QuoteEntity> getQuotesForAUser() {
+	public List<QuoteEntity> getQuotesForAUser(Long userId) {
 		final String methodName = "getQuote";
 		logger.info("Entered " + methodName);
 
-		List<QuoteEntity> allQuotes = quoteRepository.findAll();
+		List<QuoteEntity> allQuotes = quoteRepository.findAllQuotesForAGivenUser( userId);
 
 		logger.info("Exiting method " + methodName + ".");
 		return allQuotes;
-
 	}
 
 	public QuoteEntity getQuoteById(Long id) {
@@ -40,6 +38,7 @@ public class QuoteServiceImpl implements QuoteService {
 		logger.info("Entered " + methodName + ", retrieving Quote with id: " + id);
 
 		QuoteEntity quote = quoteRepository.findById(id).orElseThrow(() -> new QuoteNotFoundException(id));
+		logger.info("Quote retrieved: " + quote);
 
 		logger.info("Exiting method " + methodName + ".");
 		return quote;
@@ -58,17 +57,25 @@ public class QuoteServiceImpl implements QuoteService {
 
 	public QuoteEntity updateQuote(QuoteRequest quoteRequest) {
 		final String methodName = "updateQuote";
-		logger.info("Entered " + methodName);
+		logger.info("Entered " + methodName + " with quote details: " + quoteRequest);
 		Long id = quoteRequest.getQuoteId();
 
 		QuoteEntity quoteToBeUpdated = quoteRepository.findById(id).orElseThrow(() -> new QuoteNotFoundException(id));
+		logger.info("Original quote details retrieved from db: " + quoteToBeUpdated);
+
 		quoteToBeUpdated.setQuoteText(quoteRequest.getQuoteText());
+		logger.info("#2");
+
 		quoteToBeUpdated.setQuotePrivacySetting(quoteRequest.getQuotePrivacySetting());
-		quoteToBeUpdated.setQuoteAuthor(quoteRequest.getQuotePrivacySetting());
+		logger.info("#3");
+
+		quoteToBeUpdated.setQuoteAuthor(quoteRequest.getQuoteAuthor());
+		logger.info("#4");
+
 
 		quoteToBeUpdated = quoteRepository.save(quoteToBeUpdated);
 
-		logger.info("Exiting method " + methodName + ".");
+		logger.info("Exiting method " + methodName + ". Quote successfully updated.");
 		return quoteToBeUpdated;
 	}
 

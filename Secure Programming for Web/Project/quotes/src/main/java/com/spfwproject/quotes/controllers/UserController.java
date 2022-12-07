@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.spfwproject.quotes.entities.UserEntity;
 import com.spfwproject.quotes.exceptions.NonEntityOwnerAuthorisationException;
 import com.spfwproject.quotes.exceptions.UserNotFoundException;
+import com.spfwproject.quotes.interfaces.AuthenticationService;
 import com.spfwproject.quotes.interfaces.AuthorisationService;
 import com.spfwproject.quotes.interfaces.UserService;
 import com.spfwproject.quotes.models.UserDetailsRequest;
@@ -30,12 +32,16 @@ public class UserController {
 	private final UserService userService;
 	@Autowired
 	private final AuthorisationService authorisationService;
+	
+	@Autowired
+	private final AuthenticationService authenticationService;
 
 	private Logger logger = LoggerFactory.getLogger(UserController.class);
 
-	public UserController(UserService userService, AuthorisationService authorisationService) {
+	public UserController(UserService userService, AuthorisationService authorisationService, AuthenticationService authenticationService) {
 		this.userService = userService;
 		this.authorisationService = authorisationService;
+		this.authenticationService = authenticationService;
 	}
 
 	@GetMapping("/{id}")
@@ -86,17 +92,26 @@ public class UserController {
 	public ResponseEntity deleteUser(@RequestBody UserDetailsRequest userDetails)
 			throws NonEntityOwnerAuthorisationException {
 		final String methodName = "deleteUser";
-		logger.info("Entered " + methodName);
+		Long userId = userDetails.getId();
+		String enteredPassowrd = userDetails.getPassword();
+		logger.info("Entered " + methodName + " with user: "  + userDetails);
 
 		authorisationService.isAuthenticatedUserAuthorizedToActOnEntity(userDetails.getId());
 
-		// TODO: user has entered password and password has been validateds
-		// TODO: delete roles & quotes
+		// User has entered password and password has to be validated
+		UserEntity user = userService.getUserByUsername(userDetails.getUsername());
+		boolean isExpectedPassword = authenticationService.isExpectedPassword(enteredPassowrd, user.getPassword());
+		if (isExpectedPassword) {
+			logger.info("Password matched, deleting user and user quotes");
+			userService.deleteUser(userId);
+			// TODO: delete quotes and roles
+			logger.info("Deletion complete.");
+			ResponseEntity response = ResponseEntity.ok().build();
+			logger.info("Exiting method " + methodName + ".");
+			return response;
 
-		userService.deleteUser(userDetails.getId(), userDetails.getPassword());
-		ResponseEntity response = ResponseEntity.ok().build();
-
-		logger.info("Exiting method " + methodName + ".");
-		return response;
+		} else {
+			throw new BadCredentialsException("Password entered is not correct.");
+		}
 	}
 }

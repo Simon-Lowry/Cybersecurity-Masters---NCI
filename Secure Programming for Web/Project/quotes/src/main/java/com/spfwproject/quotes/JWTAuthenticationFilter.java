@@ -61,7 +61,6 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
     	
         // Retrieve jwt token from header and ensure is bearer token	
         final String header = request.getHeader(HttpHeaders.AUTHORIZATION);
-    	logger.info("Request token header contents: " + header);
         if (header == null || header.isEmpty() ||  !header.startsWith("Bearer ")) {
         	logger.info("Issue with token structure or is empty.");
         	throw new MalformedTokenException();

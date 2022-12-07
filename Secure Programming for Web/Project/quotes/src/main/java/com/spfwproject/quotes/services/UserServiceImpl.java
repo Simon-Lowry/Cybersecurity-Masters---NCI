@@ -181,7 +181,7 @@ public class UserServiceImpl implements UserService {
 		return currentUserEntity;
 	}
 
-	public boolean deleteUser(Long id, String userPassword) {
+	public boolean deleteUser(Long id) {
 		final String methodName = "deleteUser";
 		logger.info("Entered " + methodName);
 

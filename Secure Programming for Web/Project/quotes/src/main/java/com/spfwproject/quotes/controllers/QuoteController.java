@@ -2,10 +2,12 @@ package com.spfwproject.quotes.controllers;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,6 +25,7 @@ import com.spfwproject.quotes.interfaces.AuthorisationService;
 import com.spfwproject.quotes.interfaces.QuoteService;
 import com.spfwproject.quotes.models.QuoteRequest;
 import com.spfwproject.quotes.models.QuoteResponse;
+import com.spfwproject.quotes.models.TokenResponse;
 import com.spfwproject.quotes.validators.QuoteValidator;
 
 @RestController
@@ -41,29 +44,39 @@ public class QuoteController {
 		this.authorisationService = authorisationService;
 	}
 
-	@GetMapping
-	public ResponseEntity getAllOfAUsersQuotes() {
-		return (ResponseEntity) ResponseEntity.ok();
-	}
-
-	@GetMapping("/{id}")
-	public ResponseEntity getQuote(@RequestBody QuoteRequest quoteRequest) throws NonEntityOwnerAuthorisationException {
+	@GetMapping("/{userId}/{quoteId}")
+	public ResponseEntity<QuoteResponse> getQuoteByQuoteId(@PathVariable("userId") Long userId, @PathVariable("quoteId") Long quoteId) throws NonEntityOwnerAuthorisationException {
 		final String methodName = "getQuote";
-		Long userId = quoteRequest.getUserId();
-		Long quoteId = quoteRequest.getQuoteId();
-
 		logger.info("Entered " + methodName + ", retrieving user with id: " + quoteId);
+		
 		authorisationService.isAuthenticatedUserAuthorizedToActOnEntity(userId);
 
-		// TODO: is user making request authenticated
-		// TODO: is user authorized to retrieve given user's information
 		QuoteEntity quoteEntity = null;
 		try {
 			quoteEntity = quoteService.getQuoteById(quoteId);
 			QuoteResponse quoteResponse = QuoteResponse.convertQuoteEntityToQuoteResponse(quoteEntity);
 
-			logger.info("Exiting method " + methodName + ".");
+			logger.info("Exiting method " + methodName + ", with quote response: " + quoteResponse);
 			return ResponseEntity.ok(quoteResponse);
+		} catch (QuoteNotFoundException ex) {
+			logger.error("Exception: " + ex);
+			return (ResponseEntity) ResponseEntity.badRequest();
+		}
+	}
+	
+	@GetMapping("/getAllQuotes/{userId}")
+	public ResponseEntity getAllQuotesForAUser(@PathVariable("userId") Long userId) throws NonEntityOwnerAuthorisationException {
+		final String methodName = "getQuote";
+		logger.info("Entered " + methodName + ", retrieving quotes with user id: " + userId);
+		
+		authorisationService.isAuthenticatedUserAuthorizedToActOnEntity(userId);
+
+		List<QuoteEntity> quoteEntities = null;
+		try {
+			quoteEntities = quoteService.getQuotesForAUser(userId);
+
+			logger.info("Exiting method " + methodName + ".");
+			return ResponseEntity.ok(quoteEntities);
 		} catch (QuoteNotFoundException ex) {
 			logger.error("Exception: " + ex);
 			return (ResponseEntity) ResponseEntity.badRequest();
@@ -73,17 +86,25 @@ public class QuoteController {
 	@PostMapping
 	public ResponseEntity createQuote(@RequestBody QuoteRequest quoteRequest)
 			throws NonEntityOwnerAuthorisationException {
+		final String methodName = "createQuote";
+		logger.info("Entered " + methodName + ", with quote details: " + quoteRequest);
 		authorisationService.isAuthenticatedUserAuthorizedToActOnEntity(quoteRequest.getUserId());
 
 		QuoteValidator quoteValidator = new QuoteValidator(quoteRequest);
 		quoteValidator.validate();
 
 		if (quoteValidator.containsErrors()) {
+			logger.info("Exiting " + methodName + ", validation of quote details contains errors. Errors: " 
+					+ quoteValidator.getListOfErrors());
+
 			return ResponseEntity.badRequest().body(quoteValidator.getListOfErrors());
 		} else {
 			try {
 				quoteService.createQuote(quoteRequest);
-				return (ResponseEntity) ResponseEntity.created(new URI("/quotes"));
+				logger.info("Exiting " + methodName + ", quote created");
+
+				ResponseEntity response = new ResponseEntity(HttpStatus.CREATED);
+				return response;
 			} catch (URISyntaxException e) {
 				// TODO Auto-generated catch block
 				logger.info("Exception occured: " + e);
@@ -93,21 +114,29 @@ public class QuoteController {
 	}
 
 	@PutMapping
-	public ResponseEntity updateQuote(@RequestBody QuoteRequest quoteRequest)
-			throws NonEntityOwnerAuthorisationException {
+	public ResponseEntity updateQuote(@RequestBody QuoteRequest quoteRequest) throws NonEntityOwnerAuthorisationException {
+		final String methodName = "updateQuote";
+		logger.info("Entered " + methodName + ", updating quote with these contents: " + quoteRequest);
 		authorisationService.isAuthenticatedUserAuthorizedToActOnEntity(quoteRequest.getUserId());
 
+		logger.info("Attempting to validate quote details....");
 		QuoteValidator quoteValidator = new QuoteValidator(quoteRequest);
 		quoteValidator.validate();
+		logger.info("Validation complete");
+
 
 		if (quoteValidator.containsErrors()) {
+			logger.info("Validation contains errors: " + quoteValidator.getListOfErrors());
+
 			return ResponseEntity.badRequest().body(quoteValidator.getListOfErrors());
 		} else {
 			try {
-				quoteService.updateQuote(quoteRequest);
-				return (ResponseEntity) ResponseEntity.created(new URI("/quotes"));
-			} catch (URISyntaxException e) {
-				// TODO Auto-generated catch block
+				logger.info("Attempting to update quote details... ");
+				QuoteEntity quoteUpdated = quoteService.updateQuote(quoteRequest);
+				logger.info("Exiting method. Quote updated.");
+
+				return ResponseEntity.ok(quoteUpdated);
+			} catch (Exception e) {
 				logger.info("Exception occured: " + e);
 				return ResponseEntity.badRequest().body(e);
 			}
@@ -115,10 +144,14 @@ public class QuoteController {
 	}
 
 	@DeleteMapping
-	public ResponseEntity deleteQuote(@PathVariable Long id) throws NonEntityOwnerAuthorisationException {
-		authorisationService.isAuthenticatedUserAuthorizedToActOnEntity(id);
+	public ResponseEntity<Object> deleteQuote(@RequestBody QuoteRequest quoteRequest) throws NonEntityOwnerAuthorisationException{
+		final String methodName = "deleteQuote";
+		logger.info("Entered " + methodName + ", deleting quote with these contents: " + quoteRequest);
+		authorisationService.isAuthenticatedUserAuthorizedToActOnEntity(quoteRequest.getUserId());
 
-		quoteService.deleteQuote(id);
+		quoteService.deleteQuote(quoteRequest.getQuoteId());
+		logger.info("Exiting " + methodName + ", deleted quote successfully.");
+
 		return ResponseEntity.ok(null);
 	}
 }

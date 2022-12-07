@@ -32,14 +32,10 @@ import com.spwproject.quotes.dbaccesslayer.LoginAttemptsDBAccess;
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true, jsr250Enabled = true)
 public class SecurityConfig {
-	public static final String LOGOUT_URI = "/logout";
+	public static final String LOGOUT_URI = "auth/logout";
 	public static final String JSESSIONID = "JSESSIONID";
 	public static final String LOGIN_URI = "/login";
-	public static final String ADMIN_SUCCESS_URL = "TBD/admin/dashboard";
 	public static final String USER_ROLE = "USER";
-	public static final String USER_SUCCESS_URL = "TBD/user/dashboard";
-
-
 	
 	/*
 	 * @Autowired BCryptPasswordEncoder crypt;
@@ -50,12 +46,18 @@ public class SecurityConfig {
 		return new UserDBAccess();
 	}
 
+	// csrf disabled since we're using jwt, making that redundant.
+	// session management: create new session on login for session fixation & only allow one session
+	// httponly, secure flags are set in application.properties and 15 minutes session life. urlrewriting disabled too.
+	// on logout, invalidate session and delete cookies
 	@Bean
 	protected SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-		http.csrf().disable().sessionManagement().invalidSessionUrl(LOGIN_URI)
-				.maximumSessions(1).and().sessionFixation().newSession().and().logout().logoutUrl(LOGOUT_URI)
-				.logoutSuccessUrl(LOGIN_URI).deleteCookies(JSESSIONID);
+		http.csrf().disable()
+				.sessionManagement().invalidSessionUrl(LOGIN_URI)
+				.maximumSessions(1).and().sessionFixation().newSession()
+				.and().logout().logoutUrl(LOGOUT_URI).deleteCookies(JSESSIONID).invalidateHttpSession(true);
 		
+		// specify paths allowed based on roles, anonymous represents unauthenticated users
 		http
 		.httpBasic()
 	    .authenticationEntryPoint(new NoPopupBasicAuthenticationEntryPoint())
@@ -70,7 +72,7 @@ public class SecurityConfig {
 		.anyRequest().denyAll(); 
 		
 		 // Add JWT token filter
-        http.addFilterBefore(
+         http.addFilterBefore(
         	authenticationTokenFilterBean(),
             UsernamePasswordAuthenticationFilter.class
         );
@@ -80,12 +82,14 @@ public class SecurityConfig {
 	}
 	
 
+	// Cross origin allowlist limited to the UI of the application and specific headers and http verbs relevant
+	// to the application
 	@Bean
 	public CorsConfigurationSource corsConfigurationSource() {
 	    CorsConfiguration configuration = new CorsConfiguration();	   
 	    configuration.setAllowedOrigins(Collections.singletonList("http://localhost:3000"));
 	    configuration.setAllowedMethods(Arrays.asList("GET","POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-	    configuration.setExposedHeaders(Arrays.asList("*"));
+	    configuration.setExposedHeaders(Arrays.asList("Authorization", "content-type"));
 	    configuration.setAllowedHeaders(Arrays.asList("Authorization", "content-type"));
 	    configuration.setAllowCredentials(true);	 
 

@@ -30,6 +30,14 @@ public class QuoteValidator extends Validator{
 					+ " It must be no longer than 300 characters.");
 		}
 		
+		String quoteAuthor = quoteRequest.getQuoteAuthor();
+		if (quoteAuthor == null) {
+			addErrorMessageToErrorList("Quote author must not be null");
+		} else if (!isValidQuoteAuthor(quoteAuthor)) {
+			addErrorMessageToErrorList("Quote author can only contain alphabetic or hyphen or apostrophe characters."
+					+ " It must be no longer than 40 characters.");
+		}
+		
 		String quotePrivacy = quoteRequest.getQuotePrivacySetting();
 		if (quotePrivacy == null) {
 			addErrorMessageToErrorList("Quote privacy setting must not be null");
@@ -45,8 +53,17 @@ public class QuoteValidator extends Validator{
 	
 	private boolean isValidQuoteText(String quoteText) {
 		Pattern pattern = Pattern
-				.compile("^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!-',?.]).{1,300}$");
+				.compile("^(?=.*[0-9A-Za-z!-',?. ]).{1,300}$");
 		Matcher matcher = pattern.matcher(quoteText);
+		boolean isMatchFound = matcher.find();
+
+		return isMatchFound;
+	}
+	
+	private boolean isValidQuoteAuthor(String quoteAuthor) {
+		Pattern pattern = Pattern
+				.compile("^(?=.*[0-9A-Za-z'\\- ]).{1,40}$");
+		Matcher matcher = pattern.matcher(quoteAuthor);
 		boolean isMatchFound = matcher.find();
 
 		return isMatchFound;

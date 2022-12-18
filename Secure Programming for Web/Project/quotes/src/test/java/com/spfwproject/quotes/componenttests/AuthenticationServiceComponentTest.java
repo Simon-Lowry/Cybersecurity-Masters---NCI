@@ -7,28 +7,48 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.web.servlet.MockMvc;
 
 import com.spfwproject.quotes.models.UserDetailsRequest;
 import com.spfwproject.quotes.services.AuthenticationServiceImpl;
+import com.spfwproject.quotes.utils.TestUser;
+import com.spfwproject.quotes.utils.TestUsers;
+import com.spfwproject.quotes.utils.TestUtils;
 import com.spfwproject.quotes.validators.UserDetailsValidator;
 
 @SpringBootTest
+@AutoConfigureMockMvc
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class AuthenticationServiceComponentTest {
 	@Autowired
 	AuthenticationServiceImpl authenticationService;
 	
+	@Autowired
+	private TestUtils testUtils;
+	
+	private TestUser testUser;
+	
 	private Logger logger = LoggerFactory.getLogger(AuthenticationServiceComponentTest.class);
+	
+	@BeforeAll
+	public void setup() {
+		testUser = TestUsers.getTestUser1();
+	}
 
 	@Test
 	void testValidateSignupForm() {
+		String password = "(mWoringstuf)1n4a";
 		
 		UserDetailsRequest signUpForm = new UserDetailsRequest("Some Name", "words@email.com", 
-				"Password123*", "Password123*", "Dublin", "Ireland");
+				password, password, "Dublin", "Ireland");
 		
 		// valid signup form, expect no errors
 		UserDetailsValidator validator = authenticationService.validateSignupForm(signUpForm);
@@ -40,7 +60,6 @@ public class AuthenticationServiceComponentTest {
 		assertChecksOnPasswordsForSignupFormValidation(validator, signUpForm);
 		
 	}
-	
 	
 	private void assertChecksOnPasswordsForSignupFormValidation(UserDetailsValidator validator, UserDetailsRequest signUpForm) {
 		final String passwordErrorExpected = UserDetailsValidator.PASSWORD_CONTENT_ERROR;
@@ -70,6 +89,20 @@ public class AuthenticationServiceComponentTest {
 		assertTrue(validator.containsErrors());
 		assertTrue(validator.getListOfErrors().contains(passwordErrorExpected));
 		
+		// 𝘈Ḇ𝖢𝕯٤ḞԍНǏ𝙅ƘԸⲘ𝙉০Ρ𝗤Ɍ𝓢ȚЦ𝒱Ѡ𝓧ƳȤ
+		// use non-ASCII characters, expect error
+		setPasswordAndRepeatPassword("𝘈Ḇ𝖢𝕯٤ḞԍНǏ𝙅ƘԸⲘ𝙉০Ρ𝗤Ɍ𝓢ȚЦ𝒱Ѡ𝓧ƳȤ", signUpForm);
+		validator = authenticationService.validateSignupForm(signUpForm);
+		assertTrue(validator.containsErrors());
+		assertTrue(validator.getListOfErrors().contains(passwordErrorExpected));
+		
+		// use more non-ASCII characters, expect error
+		setPasswordAndRepeatPassword("ᒪ੦ꞧ𝒆ṁ ірʂǚм ḋởƚꝍȑ 𐑈ĭţ 𝗮ḿě𝘁, çó𝖓ṣℯ𝔠тệ𝘵𝚞ṝ åᵭȉƥîŝćí𝞹𝗀 ɇł𝒾ţ, "
+				+ "𝓈ę𝘥 𝚍ṏ 𝙚𝒊ůṥɱởⅾ 𝘁ếᶆ𝕡𝐨ṛ 𝞲𝑛ϲ𝒊ᶁ𝙞đȗռ𝞽 μť ⱡ⍺бỡ𝗋ȅ ɇ𝛕 𝖉۵ȴờ𝗿ε м𝞪𝓰𝓃ǟ ⱥɫ𝝸ʠưá.", signUpForm);
+		validator = authenticationService.validateSignupForm(signUpForm);
+		assertTrue(validator.containsErrors());
+		assertTrue(validator.getListOfErrors().contains(passwordErrorExpected));
+		
 		// use different password, expect error
 		signUpForm.setPasswordRepeated("abc");
 		validator = authenticationService.validateSignupForm(signUpForm);
@@ -77,10 +110,24 @@ public class AuthenticationServiceComponentTest {
 		assertTrue(validator.getListOfErrors().contains(passwordErrorExpected));
 		
 		// use a null password, expect error
-		signUpForm.setPasswordRepeated(null);
+		signUpForm.setPassword(null);
 		validator = authenticationService.validateSignupForm(signUpForm);
 		assertTrue(validator.containsErrors());
-	    assertTrue(validator.getListOfErrors().contains("Password repeated entry must contain a value"));
+		logger.info("Errors test 1: " + validator.getListOfErrors());
+	    assertTrue(validator.getListOfErrors().contains(UserDetailsValidator.PASSWORD_NOT_SET_ERROR));
+	    
+	    // use an empty password, expect error
+	 	signUpForm.setPassword("");
+	 	validator = authenticationService.validateSignupForm(signUpForm);
+	 	assertTrue(validator.containsErrors());
+	 	assertTrue(validator.getListOfErrors().contains(UserDetailsValidator.PASSWORD_NOT_SET_ERROR));
+	 	
+	 	// use password that contains password common password list, expect error
+		setPasswordAndRepeatPassword("letmein12345A*", signUpForm);
+	 	validator = authenticationService.validateSignupForm(signUpForm);
+	 	assertTrue(validator.containsErrors());
+	 	assertTrue(validator.getListOfErrors().contains(UserDetailsValidator.COMMONLY_USED_PASSWORD_ERROR));
+	 	
 	}
 		
 	private UserDetailsRequest setPasswordAndRepeatPassword(String password, UserDetailsRequest signUpForm) {
@@ -100,6 +147,8 @@ public class AuthenticationServiceComponentTest {
 	@Test
 	void testGeneratePasswordHashAndItsContentsAndIsPlaintextPasswordHashedEqualsToIt() {
 		String password = "SomePassword";
+		
+		testUtils.setTestSecurityContextWithAuthorisation(testUser.getUsername(), testUser.getPassword());
 		
 		String result = authenticationService.generatePasswordWithBCrypt(password);
 		logger.info("Generated password hash: " + result);

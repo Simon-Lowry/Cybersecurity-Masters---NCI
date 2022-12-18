@@ -30,11 +30,14 @@ export default class UserProfile extends React.Component {
             this.setState({ returnToLogin: true});
         }
 
+
         let userUrl = "https://localhost:8080/users/" + userId;
-        console.log("URL: " + userUrl);
-        console.log("token before get: " + token);
+        var words = document.cookie;
+        console.log("cooks: " + words);
         fetch(userUrl, {
             method: 'GET',
+            credentials: 'include' ,
+
             headers: {
                 'Content-type': 'application/json; charset=UTF-8',
                 'Authorization': 'Bearer ' + token
@@ -46,8 +49,6 @@ export default class UserProfile extends React.Component {
 
      handlePageLoadUserGetResponse(response) {
         return response.text().then(text => {
-            console.log("response from get user: " + text);
-
             let data = null;
             if (!response.ok) {
                 if ([401, 400].includes(response.status)) {
@@ -60,10 +61,8 @@ export default class UserProfile extends React.Component {
                 data = text && JSON.parse(text);
     
                 if(data != null){
-                    console.log("data: " + data['country']);
                    this.setState({ name: data['name'] });
                    this.setState({ username: data['email'] });  
-                   console.log("username: " + this.state.email);
                    this.setState({ city: data['city'] });  
                    this.setState({ country: data['country'] });    
                 }
@@ -84,22 +83,23 @@ export default class UserProfile extends React.Component {
      }
 
      logout() {
-        localStorage.clear();
+        const token = localStorage['token'];
 
-        // TODO: call logout on backend and adjust this code
-        /*
         let userUrl = "https://localhost:8080/auth/logout";
         console.log("URL: " + userUrl);
         fetch(userUrl, {
-            method: 'GET',
+            method: 'POST',
             headers: {
                 'Content-type': 'application/json; charset=UTF-8',
                 'Authorization': 'Bearer ' + token
             },
+            credentials: "include",
+
 
         }).then(this.handleLogoutResponse);
-        */
       
+        localStorage.clear();
+
         this.setState({
             returnToLogin: true
         }); 

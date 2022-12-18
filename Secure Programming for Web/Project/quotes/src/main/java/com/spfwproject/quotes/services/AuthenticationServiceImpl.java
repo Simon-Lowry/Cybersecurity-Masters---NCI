@@ -14,6 +14,10 @@ import java.util.Random;
 
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,11 +30,13 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import com.spfwproject.quotes.entities.UserEntity;
+import com.spfwproject.quotes.exceptions.InvalidSessionException;
 import com.spfwproject.quotes.exceptions.LoginAttemptsLimitReachedException;
 import com.spfwproject.quotes.interfaces.AuthenticationService;
 import com.spfwproject.quotes.interfaces.JWTTokenService;
@@ -43,9 +49,7 @@ import com.spwproject.quotes.dbaccesslayer.LoginAttemptsDBAccess;
 @Component
 public class AuthenticationServiceImpl implements AuthenticationProvider, AuthenticationService {
 	private Logger logger = LoggerFactory.getLogger(AuthenticationServiceImpl.class);
-
-	private static final Random RANDOM = new SecureRandom();
-	private static final int ATTEMPTS_LIMIT = 3; 
+	private final String UI_IP = "0:0:0:0:0:0:0:1";
 
 	@Autowired
 	private UserServiceImpl userService;
@@ -58,36 +62,24 @@ public class AuthenticationServiceImpl implements AuthenticationProvider, Authen
 
 	@Autowired
 	private final JWTTokenService jwtTokenService;
+	
+	@Autowired
+	private final SessionServiceImpl sessionServiceImpl;
 
 	public AuthenticationServiceImpl(UserServiceImpl userService, PasswordEncoder bcryptEncoder,
-			LoginAttemptsDBAccess loginAttemptsDbAccess,JWTTokenServiceImpl jwtTokenService ) {
+			LoginAttemptsDBAccess loginAttemptsDbAccess,JWTTokenServiceImpl jwtTokenService, SessionServiceImpl sessionServiceImpl ) {
 		this.userService = userService;
 		this.bcryptEncoder = bcryptEncoder;
 		this.loginAttemptsDbAccess = loginAttemptsDbAccess;
 		this.jwtTokenService = jwtTokenService;
-	}
-
-	/**
-	 * Returns a.....
-	 *
-	 * @return
-	 */
-	protected static byte[] getNextSalt() {
-		byte[] salt = new byte[16];
-		RANDOM.nextBytes(salt);
-		return salt;
+		this.sessionServiceImpl = sessionServiceImpl;
 	}
 
 	public String generatePasswordWithBCrypt(String plainPassword) {
 		String encodedPassword = bcryptEncoder.encode(plainPassword);
 
-		logger.info("Password before bcrypt plain: " + plainPassword);
-		logger.info("Encoded bcrypt password: " + encodedPassword);
-
 		return encodedPassword;
 	}
-
-	
 
 	public boolean isExpectedPassword(String enteredPassword, String encodedPassword) {
 		// String enteredPasswordHashed = bcryptEncoder.encode(enteredPassword);
@@ -135,6 +127,7 @@ public class AuthenticationServiceImpl implements AuthenticationProvider, Authen
 			logger.info("Exiting " + methodName + " in AuthService.");
 			loginAttempts.setAttempts(0);
 			loginAttemptsDbAccess.saveAttemptsToDb(loginAttempts);
+			//user.setPassword(null);
 			return new UsernamePasswordAuthenticationToken(user, password, authoritiesList);
 		}else if (isUserAccountLocked) { // account locked, throw exception		
 			throw new LoginAttemptsLimitReachedException();
@@ -180,7 +173,6 @@ public class AuthenticationServiceImpl implements AuthenticationProvider, Authen
 		
 		 logger.info("CURRENT ATTEMPTS: " + currentNumAttempts);
 		if (attemptsEntity.getAttempts() > 3) {
-			//TODO: set user to disabled, log failure and throw exception
 			boolean isAccountLockedUpdated = true;
 			userEntity.setAccountLocked(true); 
 			userService.updateUser(userEntity, isAccountLockedUpdated);
@@ -191,19 +183,48 @@ public class AuthenticationServiceImpl implements AuthenticationProvider, Authen
 		logger.info("Exiting method: " + methodName);
 	}
 	
+	
 	public TokenResponse setResponseBodyAndSecurityContextWithAuthInfo(Long id, 
-			Authentication authentication) {
+			Authentication authentication, HttpServletRequest request) {
 		final String methodName = "setResponseBodyAndSecurityContextWithAuthInfo";
 		logger.info("Enter method: " + methodName);
 
-		SecurityContextHolder.getContext().setAuthentication(authentication);
+		SecurityContext securityContext = SecurityContextHolder.getContext();
+		securityContext.setAuthentication(authentication);
 		
-		String token = jwtTokenService.generateToken(authentication);
-		logger.info("Token genereated: " + token);
-		TokenResponse tokenResponse = new TokenResponse(token, "Bearer", id);
+		 // Create a new session and add the security context.
+		HttpSession oldSession = request.getSession(false);
+		logger.info("Session id before change: " + oldSession.getId());
+		request.changeSessionId();		
+		
+		HttpSession session = request.getSession(false);
+	    if (session == null) throw new InvalidSessionException();
+		logger.info("Session id after change: " + request.getSession(false).getId());
 
+	    sessionServiceImpl.saveUserSession(session, id);
+	    	    		
+		String token = jwtTokenService.generateToken(authentication);
+		TokenResponse tokenResponse = new TokenResponse(token, "Bearer", id);
+		
 		logger.info("Exiting method: " + methodName);
 		return tokenResponse;
 	}
+	
+	public void generateAltSessionCookie( HttpServletRequest request,
+			HttpServletResponse responseHttp) {
+		String sessionId = request.getSession(false).getId();
+
+		Cookie cookie = new Cookie("SESSION_ID", sessionId);
+		cookie.setHttpOnly(true);
+		cookie.setSecure(true);
+		cookie.setMaxAge(1000);
+		cookie.setPath("/");
+
+		cookie.setDomain("quotes.app.v1.local");
+
+		responseHttp.addCookie(cookie);
+
+	}
+	
 
 }

@@ -24,8 +24,5 @@ public class LoginAttemptsDBAccess {
 	public void saveAttemptsToDb(LoginAttemptsEntity loginAttempts) {
 		loginAttemptsRepository.save(loginAttempts);
 	}
-	  
-//	  public void deleteLoginAttempts(List<Integer> listOfLoginAttemptIds) {
-//	  loginAttemptsRepository.deleteAllById(listOfLoginAttemptIds); }
 	 
 }

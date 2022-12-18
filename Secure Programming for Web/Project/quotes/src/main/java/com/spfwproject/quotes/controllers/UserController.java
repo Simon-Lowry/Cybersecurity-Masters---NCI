@@ -70,7 +70,7 @@ public class UserController {
 	public ResponseEntity updateUser(@RequestBody UserDetailsRequest user)
 			throws URISyntaxException, NonEntityOwnerAuthorisationException {
 		final String methodName = "updateUser";
-		logger.info("Entered " + methodName + " with user: " + user);
+		logger.info("Entered " + methodName + " with user: " + user.getId());
 
 		authorisationService.isAuthenticatedUserAuthorizedToActOnEntity(user.getId());
 

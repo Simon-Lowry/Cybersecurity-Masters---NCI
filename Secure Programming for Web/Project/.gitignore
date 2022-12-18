@@ -1,3 +1,11 @@
 # Ignore application property file & key
 quotes/src/main/resources/application.properties
 quotes/src/main/resources/keystore.p12
+quotes/src/test/resources/application.properties
+quotes/src/test/resources/keystore.p12
+quotes-ui/cert.pem
+quotes-ui/key.pem
+quotes-ui/.env
+quotes-ui/csr.pem
+quotes-ui/server.crt
+

@@ -56,7 +56,7 @@ public class UserEntity extends User {
 
 	@Column(name = "account_locked")
 	private boolean accountLocked;
-
+	
 	@OneToOne()
 	@JoinTable(name = "User_Role", 
 		joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "user_id", unique = true), 
@@ -64,22 +64,6 @@ public class UserEntity extends User {
 	)
 	private RoleEntity role;
 
-	/*
-	@ManyToMany
-	@JoinTable(name = "users_quotes", 
-		joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "user_id"), 
-		inverseJoinColumns = @JoinColumn(name = "quote_id", referencedColumnName = "quote_id")
-	) */
-//	private Collection<QuoteEntity> quotes;
-
-	/*
-	 * @OneToOne
-	 * 
-	 * @JoinTable(name = "users_loginattempts", joinColumns = @JoinColumn(name =
-	 * "user_id", referencedColumnName = "id"), inverseJoinColumns
-	 * = @JoinColumn(name = "login_attempt_id", referencedColumnName = "id"))
-	 * private LoginAttemptsEntity loginAttempts;
-	 */
 
 	public UserEntity() {
 		super("temp", "temp", true, false, false, false, new ArrayList<GrantedAuthority>());
@@ -187,16 +171,6 @@ public class UserEntity extends User {
 		this.role = role;
 	}
 
-	/*
-	public Collection<QuoteEntity> getQuotes() {
-		return quotes;
-	}
-
-	public void setQuotes(Collection<QuoteEntity> quotes) {
-		this.quotes = quotes;
-	}
-	*/
-
 	public UserResponse convertUserEntityToUserResponse() {
 		return new UserResponse(getId(), getName(), getUsername(), getCity(), getCountry());
 	}
@@ -204,7 +178,6 @@ public class UserEntity extends User {
 	@Override
 	public String toString() {
 		return "User [id=" + id + ", name=" + name + ", username=" + username + ", city=" + city + ", country="
-				+ country + ", hashedPassword=" + password + ", salt=" + salt + ", accountLocked=" + accountLocked
-				+ ", Role: " + role.getName() + "]";
+				+ country +  ", accountLocked=" + accountLocked + ", Role: " + role.getName() + "]";
 	}
 }

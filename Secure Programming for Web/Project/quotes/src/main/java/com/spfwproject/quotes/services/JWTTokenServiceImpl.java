@@ -8,6 +8,8 @@ import java.util.Date;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -27,6 +29,8 @@ import io.jsonwebtoken.SignatureAlgorithm;
 @Component
 public class JWTTokenServiceImpl implements Serializable, JWTTokenService {
 	private static final long serialVersionUID = 1L;
+	
+	private Logger logger = LoggerFactory.getLogger(JWTTokenServiceImpl.class);
 
 	@Value("${jwt.token.validity}")
 	public long TOKEN_VALIDITY;

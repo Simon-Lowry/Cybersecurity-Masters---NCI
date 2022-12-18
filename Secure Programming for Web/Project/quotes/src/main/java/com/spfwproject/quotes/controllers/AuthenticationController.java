@@ -4,8 +4,10 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 
+import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 
@@ -35,6 +37,7 @@ import com.spfwproject.quotes.models.UserDetailsRequest;
 import com.spfwproject.quotes.models.UserResponse;
 import com.spfwproject.quotes.services.AuthenticationServiceImpl;
 import com.spfwproject.quotes.services.JWTTokenServiceImpl;
+import com.spfwproject.quotes.services.SessionServiceImpl;
 import com.spfwproject.quotes.services.UserServiceImpl;
 import com.spfwproject.quotes.validators.UserDetailsValidator;
 
@@ -51,16 +54,20 @@ public class AuthenticationController {
 
 	@Autowired
 	private final JWTTokenService jwtTokenService;
+	
+	@Autowired
+	private final SessionServiceImpl sessionService;
 
 	public AuthenticationController(AuthenticationServiceImpl authService, UserServiceImpl userService,
-			JWTTokenService jwtTokenService) {
+			JWTTokenService jwtTokenService, SessionServiceImpl sessionService) {
 		this.authenticationService = authService;
 		this.userService = userService;
 		this.jwtTokenService = jwtTokenService;
+		this.sessionService = sessionService;
 	}
 
 	@PostMapping("signUp")
-	public ResponseEntity<TokenResponse> signUp(@RequestBody UserDetailsRequest signupFormRequest)
+	public ResponseEntity<TokenResponse> signUp(@RequestBody UserDetailsRequest signupFormRequest, HttpServletRequest request)
 			throws URISyntaxException {
 		final String methodName = "signUp";
 		logger.info("Entered " + methodName + " endpoint.");
@@ -79,13 +86,13 @@ public class AuthenticationController {
 
 		UserEntity createdUser = userService.createUser(userToCreate);
 		Long userId = createdUser.getId();
+		
 
-		// TODO: transaction id and return in response & increase logs with these details in them	
 		try {
 			UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userToCreate,
 					null, userToCreate.getAuthorities());
 			TokenResponse tokenResponseBody = authenticationService.setResponseBodyAndSecurityContextWithAuthInfo(
-					userId, authentication);
+					userId, authentication, request);
 			ResponseEntity<TokenResponse> response = ResponseEntity.created(new URI("/signUp/" + userToCreate.getId()))
 					.body(tokenResponseBody);
 	
@@ -100,12 +107,14 @@ public class AuthenticationController {
 	}
 
 	@PostMapping("login")
-	public ResponseEntity<Object> login(@RequestBody UserDetailsRequest request) {
+	public ResponseEntity<Object> login(@RequestBody UserDetailsRequest requestBody, HttpServletRequest request,
+			HttpServletResponse responseHttp) {
 		final String methodName = "login";
 		logger.info("Entered " + methodName + " endpoint.");
-		final String username = request.getUsername();
-
-		UserDetailsValidator validator = new UserDetailsValidator(request);
+		logger.info("request session: " + request.getSession().getId());
+		final String username = requestBody.getUsername();
+		
+		UserDetailsValidator validator = new UserDetailsValidator(requestBody);
 		validator.validateLoginDetails();
 		if (validator.containsErrors()) { // if form validation was a success, continue with check
 			logger.info("Login details validation returned errors, bad request 400 returned. ");
@@ -115,13 +124,16 @@ public class AuthenticationController {
 
 		try {
 			Authentication authentication = authenticationService.authenticate(
-					new UsernamePasswordAuthenticationToken(username, request.getPassword()));
+					new UsernamePasswordAuthenticationToken(username, requestBody.getPassword()));
 			Long userId = userService.getUserIdByUsername(username);
 			
 			TokenResponse tokenResponseBody = authenticationService.setResponseBodyAndSecurityContextWithAuthInfo(
-					userId, authentication);
+					userId, authentication, request);
+			
 			ResponseEntity<Object> response = ResponseEntity.ok().body(tokenResponseBody);
-			logger.error("Login succesful, response contains the token.");
+			
+			logger.info("request session after change: " + request.getSession().getId());
+			logger.info("Login succesful, response contains the token.");
 			return response;
 
 		} catch (Exception ex) {
@@ -132,23 +144,35 @@ public class AuthenticationController {
 
 	}
 
-	/*
+	
 	@PostMapping("logout")
-	public ResponseEntity performLogout(HttpServletRequest request) {
-		ResponseEntity response = null;
+	public ResponseEntity<Object> performLogout(HttpServletRequest request) throws ServletException {
 		HttpSession session= request.getSession(false);
-
+		
 		SecurityContextHolder.clearContext();
         session= request.getSession(false);
        if(session != null) {
            session.invalidate();
        }
-       for(Cookie cookie : request.getCookies()) {
-           cookie.setMaxAge(0);
+       
+       if (request.getCookies() != null) {
+	       for(Cookie cookie : request.getCookies()) {
+	           cookie.setMaxAge(0);
+	       } 
        }
+       
+       SecurityContextHolder.clearContext();
+       request.logout();
 
-		return (ResponseEntity) response.ok();
+       SecurityContextHolder.getContext().setAuthentication(null);    
+       sessionService.invalidateUserSession(session);
+       
+	   String loggedOutMessage = "User is successfully logged out.";
+	   logger.info(loggedOutMessage);
+
+	   ResponseEntity<Object> reponse = ResponseEntity.ok().body(loggedOutMessage);
+	   return  reponse;
 	}
-	*/
+
 
 }

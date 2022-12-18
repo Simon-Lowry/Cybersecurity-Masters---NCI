@@ -1,6 +1,9 @@
 package com.spfwproject.quotes.validators;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.Locale;
+import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -18,11 +21,15 @@ public class UserDetailsValidator extends Validator {
 
 	public final static String PASSWORD_REPEAT_ERROR = "Passwords must match";
 	public final static String PASSWORD_CONTENT_ERROR = "Password must contain at least one uppercase character, "
-			+ "lower case character, special character, and be between 10 to 20 "
-			+ "characters long. Apostrophes, hashes and hyphens are not allowed";
+			+ "lower case character, special character, and be between 11 to 20 "
+			+ "characters long." 
+			+ "Passphrases are encouraged & password manager use.";
+	public final static String COMMONLY_USED_PASSWORD_ERROR = "This password has been identified as containing a commonly used password."
+			+ " Please use a different one. Passphrases are encouraged & password manager use.";
 	public final static String USERNAME_NOT_SET_ERROR = "Username must contain a value";
 	public final static String PASSWORD_NOT_SET_ERROR = "Password must contain a value";
 	public final static String INVALID_CREDENTIALS_ERROR="Invalid credentials entered";
+	private final static String COMMON_PASSWORDS_FILE_LOCATION="C:\\Users\\simon\\Documents\\Programming Code\\My Programs\\Cybermasters-NCI\\Cybersecurity-Masters-NCI\\Secure Programming for Web\\Project\\quotes\\src\\main\\resources\\common_passwords.txt";
 
 
 	public UserDetailsValidator(UserDetailsRequest userDetails) {
@@ -52,6 +59,11 @@ public class UserDetailsValidator extends Validator {
 		if (!validatePassword(password)) {
 			logger.info("Error: " + PASSWORD_CONTENT_ERROR );
 			addErrorMessageToErrorList(PASSWORD_CONTENT_ERROR);
+		}
+		
+		if (isPasswordInCommonlyUsedPasswordList(password)) {
+			logger.info("Error: " + COMMONLY_USED_PASSWORD_ERROR );
+			addErrorMessageToErrorList(COMMONLY_USED_PASSWORD_ERROR);
 		}
 
 		if (!validateEmailAddress(username)) {
@@ -126,16 +138,41 @@ public class UserDetailsValidator extends Validator {
 	}
 
 	// Password must contain at least one uppercase character, lower case character,
-	// special character, and be between 10 to 20 characters long
+	// special character, and be between 11 to 20 characters long
 	private boolean validatePassword(String password) {
 		logger.info("Validating password.");
 		Pattern pattern = Pattern
-				.compile("^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#&()–[{}]:;',?/*~$^+=<>]).{10,20}$");
+				.compile("^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#&()–[{}]:;',?/*~$^+=<>]).{11,20}$");
 		Matcher matcher = pattern.matcher(password);
 		boolean isMatchFound = matcher.find();
 
 		logger.info("Validating password complete.");
 		return isMatchFound;
+	}
+	
+	private boolean isPasswordInCommonlyUsedPasswordList(String userSuppliedPassword) {
+		try {
+		      File myObj = new File(COMMON_PASSWORDS_FILE_LOCATION);
+		      @SuppressWarnings("resource")
+			  Scanner myReader = new Scanner(myObj);
+		      while (myReader.hasNextLine()) {
+		        String passwordFromCommonPasswordsList = myReader.nextLine().trim();
+		       
+		        if (userSuppliedPassword.contains(passwordFromCommonPasswordsList)) {
+		        	logger.info("Password identified in common passwords list, rejecting.");
+		        	logger.info("Password contains: "+ passwordFromCommonPasswordsList);
+
+		        	return true;
+		        }
+		      }
+		      myReader.close();
+		    } catch (FileNotFoundException e) {
+		      System.out.println("An error occurred.");
+		      e.printStackTrace();
+		    }
+    	logger.info("Password not identified containing password from common passwords list.");
+
+		return false;
 	}
 
 	// Local-part: uppercase and lowercase Latin letters A to Z and a to z, digits:

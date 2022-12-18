@@ -1,0 +1,114 @@
+import React from "react";
+import { Navigate } from 'react-router-dom';
+
+
+export default class AdminPage extends React.Component {
+
+    constructor(props) {
+        super(props);
+        this.state = {
+        }
+
+        this.getUserById = this.getUserById.bind(this);
+        this.setUserAccountStatus = this.setUserAccountStatus.bind(this);
+        this.logout = this.logout.bind(this);
+    }
+
+    componentDidMount() { 
+        const token = localStorage['token'];
+
+        if (token == null) {
+            this.setState({ returnToLogin: true});
+        }
+    }
+
+    handleInputChange (e){
+        const target = e.target;
+        const name = target.name;
+        const value = target.value;
+        this.setState( {[name]: value});
+    }
+
+    getUserById(userId) {
+        const token = localStorage['token'];
+        
+        let userUrl = "https://localhost:8080/admin/getUser/" + userId;
+        console.log("URL: " + userUrl);
+        fetch(userUrl, {
+            method: 'GET',
+            headers: {
+                'Content-type': 'application/json; charset=UTF-8',
+                'Authorization': 'Bearer ' + token
+            },
+
+        }).then(this.handleUserGetResponse);
+        
+     }
+
+     handleUserGetResponse(response) {
+        return response.text().then(text => {
+            let data = null;
+            if (!response.ok) {
+                if ([401, 400].includes(response.status)) {
+                  console.log("yeah 400 or 401: " + response);
+                }
+                this.setState({
+                    returnToLogin: true
+                }); 
+            } else {
+                data = text && JSON.parse(text);
+    
+                if(data != null){
+                   this.setState({ name: data['name'] });
+                   this.setState({ username: data['email'] });  
+                   this.setState({ city: data['city'] });  
+                   this.setState({ country: data['country'] });    
+                }
+            }
+        });
+     }
+
+     setUserAccountStatus() {
+        const token = localStorage['token'];
+        
+        let userUrl = "https://localhost:8080/admin/lockUser";
+        console.log("URL: " + userUrl);
+        fetch(userUrl, {
+            method: 'GET',
+            body: JSON.stringify({
+                //TODO: add stuff here!!
+             }),
+            headers: {
+                'Content-type': 'application/json; charset=UTF-8',
+                'Authorization': 'Bearer ' + token
+            },
+        });     
+     }
+
+     logout() {
+        const token = localStorage['token'];
+
+        let userUrl = "https://localhost:8080/auth/logout";
+        console.log("URL: " + userUrl);
+        fetch(userUrl, {
+            method: 'POST',
+            headers: {
+                'Content-type': 'application/json; charset=UTF-8',
+                'Authorization': 'Bearer ' + token
+            },
+            credentials: "include",
+
+        });
+      
+        localStorage.clear();
+
+        this.setState({
+            returnToLogin: true
+        }); 
+     }
+   
+
+}
+
+
+

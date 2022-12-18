@@ -12,7 +12,7 @@ import com.spfwproject.quotes.constants.Roles;
 import com.spfwproject.quotes.entities.RoleEntity;
 import com.spfwproject.quotes.entities.UserEntity;
 
-@TestConfiguration
+//@TestConfiguration
 public class SpringSecurityTestConfig {
 
     public UserDetailsService userDetailsService() {

@@ -13,7 +13,7 @@ public class LoginValidator extends Validator {
 	private Logger logger = LoggerFactory.getLogger(LoginValidator.class);
 
 	private LoginRequest loginRequest;
-	private final String INVALID_CREDENTIALS = "Credentials have entered incorrectly";
+	private final String INVALID_CREDENTIALS = "Credentials have been entered incorrectly.";
 
 	public LoginValidator(LoginRequest loginRequest) {
 		this.loginRequest = loginRequest;

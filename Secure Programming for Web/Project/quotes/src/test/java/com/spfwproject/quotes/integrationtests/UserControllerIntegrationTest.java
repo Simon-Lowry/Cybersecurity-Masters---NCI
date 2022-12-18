@@ -2,6 +2,7 @@ package com.spfwproject.quotes.integrationtests;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -9,6 +10,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -39,6 +41,9 @@ import com.spfwproject.quotes.entities.RoleEntity;
 import com.spfwproject.quotes.entities.UserEntity;
 import com.spfwproject.quotes.models.LoginRequest;
 import com.spfwproject.quotes.models.UserDetailsRequest;
+import com.spfwproject.quotes.utils.TestAuthInfo;
+import com.spfwproject.quotes.utils.TestUser;
+import com.spfwproject.quotes.utils.TestUsers;
 import com.spfwproject.quotes.utils.TestUtils;
 import com.spwproject.quotes.dbaccesslayer.UserDBAccess;
 
@@ -57,25 +62,31 @@ public class UserControllerIntegrationTest {
 		
 	private String token;
 	
+	private TestUser testUser;
+	private TestAuthInfo authInfo;
+
+	
 	private static Logger logger = LoggerFactory.getLogger(AuthenticationControllerIntegrationTest.class);
 	
 	@BeforeAll
 	public  void setup() throws JsonProcessingException, Exception {
 		logger.info("Enter Setup for  UserControllerIntegrationTest");
-		token = testUtils.generateUserToken("john@gmail.com");
+		testUser = TestUsers.getTestUser1();
+		token = testUtils.generateUserToken(testUser.getUsername());
 	    logger.info("Setup complete, produced token: " + token);
+		authInfo = testUtils.loginAndReturnAuthInfo();
+
 	}
 	
 	@Test
 	public void getUser_WithAuthenticatedAndAuthorisedUser_ThenSucceed() throws Exception {
 		final String methodName = "getUser_WithAuthenticatedAndAuthorisedUser_ThenSucceed";
 		logger.info("Entered test: getUser_WithAuthenticatedAndAuthorisedUser_ThenSucceed");
-
-		MvcResult result = mockMvc.perform(get("/users/505").header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
-				.andDo(MockMvcResultHandlers.print())
-				.andExpect(status().isOk()).andReturn();
-
-		result = mockMvc.perform(get("/users/505").header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+		
+		testUtils.setTestSecurityContextWithAuthorisation(testUser.getUsername(), testUser.getPassword());
+		MvcResult result = mockMvc.perform(get("/users/506")
+				.cookie(authInfo.getCookie())
+				.header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
 				.andDo(MockMvcResultHandlers.print())
 				.andExpect(status().isOk()).andReturn();
 		logger.info("Completed test " + methodName);
@@ -86,13 +97,59 @@ public class UserControllerIntegrationTest {
 		final String methodName = "getUser_WithAuthenticatedButNotAuthorisedUser_ThenThrowException";
 		logger.info("Entered test: getUser_WithAuthenticatedButNotAuthorisedUser_ThenThrowException");
 	        
-		mockMvc.perform(get("/users/506")
+		testUtils.setTestSecurityContextWithAuthorisation(testUser.getUsername(), testUser.getPassword());
+		mockMvc.perform(get("/users/9999")
+				.cookie(authInfo.getCookie())
 				.header(HttpHeaders.AUTHORIZATION, "Bearer " + token))	
 				.andDo(MockMvcResultHandlers.print())
 				.andExpect(status().isForbidden())
 				.andExpect(status().reason("Unauthorized access, only the entity owner can act on the entity"));		
 		
 		logger.info("Completed test " + methodName);
+	}
+	
+	@Test
+	public void deleteUser_WithAuthenticatedButNotAuthorisedUser_ThenThrowException() throws Exception {
+		final String methodName = "deleteUser_WithAuthenticatedButNotAuthorisedUser_ThenThrowException";
+		logger.info("Entered test: " + methodName);
+		
+		UserDetailsRequest userDetailsReq = new UserDetailsRequest(9999L, null, null, "somePassword", "somePassword", null, null );
+ 
+		testUtils.setTestSecurityContextWithAuthorisation(testUser.getUsername(), testUser.getPassword());
+		mockMvc.perform(delete("/users")
+				.cookie(authInfo.getCookie())
+				.header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(objectMapper.writeValueAsString(userDetailsReq)))	
+				.andDo(MockMvcResultHandlers.print())
+				.andExpect(status().isForbidden())
+				.andExpect(status().reason("Unauthorized access, only the entity owner can act on the entity"));		
+		
+		logger.info("Completed test " + methodName);
+	}
+	
+	@Test
+	public void updateUser_WithAuthenticatedButNotAuthorisedUser_ThenThrowException() throws Exception {
+		final String methodName = "updateUser_WithAuthenticatedButNotAuthorisedUser_ThenThrowException";
+		logger.info("Entered test: " + methodName);
+		UserDetailsRequest userDetailsReq = new UserDetailsRequest(9999L, null, null, "somePassword", "somePassword", null, null );
+	        
+		testUtils.setTestSecurityContextWithAuthorisation(testUser.getUsername(), testUser.getPassword());
+		mockMvc.perform(put("/users")
+				.cookie(authInfo.getCookie())
+				.header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(objectMapper.writeValueAsString(userDetailsReq)))	
+				.andDo(MockMvcResultHandlers.print())
+				.andExpect(status().isForbidden())
+				.andExpect(status().reason("Unauthorized access, only the entity owner can act on the entity"));		
+		
+		logger.info("Completed test " + methodName);
+	}
+	
+	@AfterAll()
+	void afterAll() {
+		testUtils.resetTestSessionCreationTime();
 	}
 
 }

@@ -13,6 +13,8 @@ export default class Signup extends React.Component {
             passwordRepeated: '',
             city: '',
             country:'',
+            sec2PetsName: '',
+            sec1MothersMaidenName: '',
             signUpError: [],
             userProfile:''
           };
@@ -25,22 +27,19 @@ export default class Signup extends React.Component {
 
      componentDidMount() { 
         localStorage.clear();
-        
+
      }
 
      handleResponse(response) {
         return response.text().then(text => {
-            console.log("token: " + text);
            
             let data = null;
             if (!response.ok) {
                 if ([401, 400].includes(response.status)) {
                   localStorage.removeItem("token", data['token']);              
-                  console.log("yeah 400 or 403: " + response.status);
                 }
     
                 const error = (data && data.message) || response.statusText;
-                console.log("Error: " + error);
                 this.setState({['signUpError']:error})
                 return error;
             } else {
@@ -50,7 +49,6 @@ export default class Signup extends React.Component {
                    localStorage.setItem("token", data['token']);
                    localStorage.setItem("userId", data['userId']);
                    this.setState( {['userProfile']: true});
-                   console.log("Token present in response");
                    return data;
                 
                 }
@@ -83,14 +81,14 @@ export default class Signup extends React.Component {
             headers: {
                 'Content-type': 'application/json; charset=UTF-8'
             },
-         })
-         .then(res => res.json())
+         }).then(this.handleResponse)
+      /*   .then(res => res.json())
          .then(res => {
             console.log("Response: " + res);
             // TODO: handle response, currently only expecting error case
             this.setState({['signUpError']:res});
          })
-        console.log('Signup form submitted');
+         */
     };
   render() {
     return(
@@ -135,6 +133,28 @@ export default class Signup extends React.Component {
               />
             </div>
             <div className="form-group mt-3">
+              <label>City</label>
+              <input
+                type="input"
+                className="form-control mt-1"
+                placeholder="City"
+                name="city"
+                onChange={this.handleInputChange} 
+                value={this.state.city}
+              />
+            </div>
+            <div className="form-group mt-3">
+              <label>Country</label>
+              <input
+                type="input"
+                className="form-control mt-1"
+                placeholder="Country"
+                name="country"
+                onChange={this.handleInputChange} 
+                value={this.state.country}
+              />
+            </div>
+            <div className="form-group mt-3">
               <label>Password</label>
               <input
                 type="password"
@@ -157,26 +177,34 @@ export default class Signup extends React.Component {
               />
             </div>
             <div className="form-group mt-3">
-              <label>City</label>
+              <label>Security Question: What is your mother's maiden name?</label>
               <input
                 type="input"
                 className="form-control mt-1"
-                placeholder="City"
-                name="city"
+                placeholder="Enter mother's maiden name here"
+                name="sec1MothersMaidenName"
                 onChange={this.handleInputChange} 
-                value={this.state.city}
+                value={this.state.sec1MothersMaidenName}
               />
             </div>
             <div className="form-group mt-3">
-              <label>Country</label>
+              <label>Security Question: What is your first pet's name?</label>
               <input
                 type="input"
                 className="form-control mt-1"
-                placeholder="Country"
-                name="country"
+                placeholder="Enter pet's name here"
+                name="sec2PetsName"
                 onChange={this.handleInputChange} 
-                value={this.state.country}
+                value={this.state.sec2PetsName}
               />
+            </div>
+            <div className="form-group  mt-3">
+                    <div className="g-recaptcha" 
+                        data-sitekey="6LfKURIUAAAAAO50vlwWZkyK_G2ywqE52NU7YO0S" data-callback="verifyRecaptchaCallback" 
+                        data-expired-callback="expiredRecaptchaCallback">
+                    </div>
+                    <input className="form-control d-none" data-recaptcha="true" required data-error="Please complete the Captcha"/>
+                    <div className="help-block with-errors"></div>
             </div>
             <div className="d-grid gap-2 mt-3">
               <button type="submit" className="btn btn-primary">

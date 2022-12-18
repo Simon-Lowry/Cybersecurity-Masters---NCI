@@ -24,4 +24,6 @@ public interface UserService {
 	public boolean deleteUser(Long id);
 	
 	public Long getUserIdByUsername(String username) throws UsernameNotFoundException;
+	
+	public UserEntity changePassword(Long id, String hashedPassword);
 }

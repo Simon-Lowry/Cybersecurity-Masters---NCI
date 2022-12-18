@@ -2,6 +2,10 @@ import { render } from "@testing-library/react";
 import React, { Component } from "react";
 import { Redirect } from "react-router-dom";
 import { Navigate } from 'react-router-dom';
+import { ReactSession }  from 'react-client-session';
+import Cookies from 'js-cookie';
+
+
 
 import UserProfile from "./UserProfile"
 
@@ -19,11 +23,13 @@ export default class Login extends React.Component {
             city: '',
             country:'',
             loginError: null,
-            userProfile:''
+            userProfile:'',
+            signUpPage: ''
           };
         this.handleInputChange = this.handleInputChange.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
         this.handleResponse = this.handleResponse.bind(this);
+        this.signUpPage = this.signUpPage.bind(this);
      }
 
      componentDidMount() { 
@@ -32,28 +38,23 @@ export default class Login extends React.Component {
 
      handleResponse(response) {
         return response.text().then(text => {
-            console.log("token: " + text);
            
             let data = null;
             if (!response.ok) {
-                if ([401, 400].includes(response.status)) {
-                    
-                  console.log("yeah 400 or 403: " + response.status);
-                }
                 this.setState({
                     loginError:text
                 });
-                console.log("loginError set to: " +  this.state.loginError);
 
             } else {
                 data = text && JSON.parse(text);
-    
+
                 if(data['token']){
                    localStorage.setItem("token", data['token']);
                    localStorage.setItem("userId", data['userId']);
                    this.setState( {['userProfile']: true});
                    console.log("Token present in response");                
                 }
+
             }
         });
     }    
@@ -70,7 +71,7 @@ export default class Login extends React.Component {
         const form = event.target;
         let status = null;
 
-        console.log("in fucking submit");
+        console.log("Doing login,,,,,");
 
         fetch('https://localhost:8080/auth/login', {
             method: 'POST',
@@ -79,10 +80,14 @@ export default class Login extends React.Component {
                 password: form.password.value,
              }),
             headers: {
-                'Content-type': 'application/json; charset=UTF-8'
+                'Content-type': 'application/json; charset=UTF-8',
             },
 
         }).then(this.handleResponse);
+    }
+
+    signUpPage() {
+        this.setState({ signUpPage: true});
     }
         
   render() {
@@ -95,7 +100,23 @@ export default class Login extends React.Component {
                     <Navigate to="/userProfile" replace={true} />
                 </div>
             )}
+            {this.state.signUpPage &&(
+                <div>
+                    <Navigate to="/signUp" replace={true} />
+                </div>
+                 )}
+        <div className="row">
+            <h1>Quotes</h1>
+            <h2><em>For all you witty quotaholics out there.</em></h2>
+            <div align="middle">
+                <button type="submit" className="btn btn-success" onClick={this.signUpPage}>
+                Sign Up!
+                </button>
+            </div>
+        </div>
+            
         <form className="Login-form" onSubmit={this.handleSubmit}>
+       
             <div className="Login-form-content">
             <h3 className="Login-form-title">Login</h3>
             <div className="form-group mt-3">

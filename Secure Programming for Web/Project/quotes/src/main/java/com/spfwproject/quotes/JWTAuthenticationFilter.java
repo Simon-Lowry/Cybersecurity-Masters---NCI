@@ -2,19 +2,27 @@ package com.spfwproject.quotes;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.annotation.Resource;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
@@ -22,10 +30,14 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.util.ContentCachingRequestWrapper;
 
 import com.spfwproject.quotes.entities.UserEntity;
+import com.spfwproject.quotes.exceptions.InvalidSessionException;
 import com.spfwproject.quotes.exceptions.InvalidTokenException;
 import com.spfwproject.quotes.exceptions.MalformedTokenException;
+import com.spfwproject.quotes.interfaces.AuthenticationService;
+import com.spfwproject.quotes.interfaces.UserService;
 import com.spfwproject.quotes.services.AuthenticationServiceImpl;
 import com.spfwproject.quotes.services.JWTTokenServiceImpl;
+import com.spfwproject.quotes.services.SessionServiceImpl;
 import com.spwproject.quotes.dbaccesslayer.UserDBAccess;
 
 public class JWTAuthenticationFilter extends OncePerRequestFilter {
@@ -33,13 +45,15 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
 
 	private final JWTTokenServiceImpl jwtTokenUtil;
     private final UserDBAccess userDBAccess;
+    private final SessionServiceImpl sessionService;
     private final String LOGIN_URL = "/auth/login";
     private final String SIGNUP_URL = "/auth/signUp";
     
     public JWTAuthenticationFilter(JWTTokenServiceImpl jwtTokenUtil,
-    		UserDBAccess userRepo) {
+    		UserDBAccess userRepo, SessionServiceImpl sessionService) {
         this.jwtTokenUtil = jwtTokenUtil;
         this.userDBAccess = userRepo;
+        this.sessionService = sessionService;
     }
 
     @Override
@@ -48,6 +62,9 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
                                     FilterChain chain)
             throws ServletException, IOException {
     	logger.info("Entered JWT Filter for request.");
+    	logger.info("IP address of sender of request: " + request.getRemoteAddr());
+    	logger.info("Note: If the system is behind a proxy, this will be the IP of the proxy.");
+    	
     	String pathInfo = request.getRequestURI();
     	logger.info("Path requested for request: " + pathInfo);
     	ContentCachingRequestWrapper wrappedRequest = new ContentCachingRequestWrapper(request);
@@ -57,7 +74,9 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
             logger.info("Request is for either login or signup, skipping jwt filter.");
             chain.doFilter(wrappedRequest, response);
             return;
-        }
+        } 
+    	
+    	sessionService.validateSession(request);
     	
         // Retrieve jwt token from header and ensure is bearer token	
         final String header = request.getHeader(HttpHeaders.AUTHORIZATION);

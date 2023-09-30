@@ -1,1 +1,4 @@
 metadataWiperBackend/properties.py
+media/files/
+metadataWiperBackend/views/__pycache__/
+*.pyc

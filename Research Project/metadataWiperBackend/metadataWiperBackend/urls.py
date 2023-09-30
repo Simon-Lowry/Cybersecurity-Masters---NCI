@@ -14,12 +14,18 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from .views import PostView
-from django.urls import path, include
+from metadataWiperBackend.views.jpeg_view import JPEGView
+from metadataWiperBackend.views.docx_view import DOCXView
+from metadataWiperBackend.views.pdf_view import PDFView
+from metadataWiperBackend.views.excel_view import XLSXView
+
+from django.urls import path
 from django.contrib import admin
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-  #  path('api/', include('post.urls')),
-    path('api/posts/', PostView.as_view()),
+    path('api/jpeg/', JPEGView.as_view()),
+    path('api/pdf/', PDFView.as_view()),
+    path('api/docx/', DOCXView.as_view()),
+    path('api/xlsx/', XLSXView.as_view()),
 ]

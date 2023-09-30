@@ -9,7 +9,6 @@ from django.http import HttpResponse
 import os
 import metadataWiperBackend.properties as properties
 
-# Create your views here.
 class PDFView(APIView):
     parser_classes = (MultiPartParser, FormParser)
 

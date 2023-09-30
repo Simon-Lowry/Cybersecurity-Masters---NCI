@@ -3,14 +3,12 @@ from metadataWiperBackend.utils.file_operations import get_file_size
 from metadataWiperBackend.utils.time_calculator import time_calculator
 import metadataWiperBackend.properties as properties
 
-# All of the Document Information Dictionary Metadata attributes
-METADATA_DID_ATTRIBUTES = ['/Title', '/Author', '/Subject', '/Keywords', '/Creator', '/Producer', '/CreationDate'
-    , '/ModDate', '/Trapped']
-
-
 class PdfMetadataWiper:
-
+    # All of the Document Information Dictionary Metadata attributes
+    __METADATA_DID_ATTRIBUTES = ['/Title', '/Author', '/Subject', '/Keywords', '/Creator', '/Producer', '/CreationDate'
+        , '/ModDate', '/Trapped']
     new_file_name = None
+
     def perform_wipe_metadata(self, filename):
         self.wipePdfMetadata(filename)
 
@@ -47,7 +45,7 @@ class PdfMetadataWiper:
         # Create an object containing the Document Information metadata
         didMetadataReader = pdf_reader.metadata
         didMetadata = {}
-        for i in METADATA_DID_ATTRIBUTES:
+        for i in self.__METADATA_DID_ATTRIBUTES:
             try:
                 didMetadata[i] = didMetadataReader.get(i)
             except:

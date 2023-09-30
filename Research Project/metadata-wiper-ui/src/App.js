@@ -1,95 +1,27 @@
 import React, { Component } from 'react';
-import axios from 'axios';
+import { BrowserRouter, Routes, Route } from "react-router-dom"
+import JPEG from "./Components/JPEG"
+import PDF from "./Components/PDF"
+import Excel from "./Components/Excel"
+import DOCX from "./Components/DOCX"
 
-class App extends Component {
-
-  state = {
-    title: '',
-    content: '',
-    image: null
-  };
-
-  handleChange = (e) => {
-    this.setState({
-      [e.target.id]: e.target.value
-    })
-  };
-
-  handleImageChange = (e) => {
-    this.setState({
-      image: e.target.files[0]
-    })
-  };
-
-  handleSubmit = (e) => {
-    e.preventDefault();
-    console.log(this.state);
-    let form_data = new FormData();
-    form_data.append('image', this.state.image, this.state.image.name);
-    form_data.append('title', this.state.title);
-    form_data.append('content', this.state.content);
-    let url = 'http://localhost:8000/api/posts/';
-    axios.post(url, form_data, {
-      headers: {
-        'content-type': 'multipart/form-data'
-      }
-    })
-        .then(res => {
-          console.log(res.data);
-        })
-        .catch(err => console.log(err))
-  };
-
-  render() {
-    return (
-      <div className="App">
-        <form onSubmit={this.handleSubmit}>
-          <p>
-            <input type="text" placeholder='Title' id='title' value={this.state.title} onChange={this.handleChange} required/>
-          </p>
-          <p>
-            <input type="text" placeholder='Content' id='content' value={this.state.content} onChange={this.handleChange} required/>
-
-          </p>
-          <p>
-            <input type="file"
-                   id="image"
-                   accept="image/png, image/jpeg"  onChange={this.handleImageChange} required/>
-          </p>
-          <input type="submit"/>
-        </form>
-      </div>
-    );
-  }
-}
-
-export default App;
-
-
-/*
-import logo from './logo.svg';
-import './App.css';
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+  <BrowserRouter>
+    <Routes>
+
+        <Route path="/jpeg" element={<JPEG />} />
+        <Route path="/pdf" element={<PDF />} />
+        <Route path="/xlsx" element={<Excel />} />
+        <Route path="/docx" element={<DOCX />} />
+
+        <Route path="/" element={<JPEG />} />
+     </ Routes>
+
+  </BrowserRouter>
+  )
 }
 
-export default App;
-*/
+export default App
+

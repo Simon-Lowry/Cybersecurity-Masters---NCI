@@ -3,6 +3,7 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 from rest_framework import status
 from metadataWiperBackend.validators.filename_validator import Filename_Validator
+from metadataWiperBackend.validators.virus_total_file_validator import VirusTotalFileValidator
 from metadataWiperBackend.serializers import PDFSerializer
 from metadataWiperBackend.services.pdf_metadata_wiper import PdfMetadataWiper
 from django.http import HttpResponse
@@ -19,12 +20,14 @@ class PDFView(APIView):
 
         if pdf_serializer.is_valid():
             is_valid_file = Filename_Validator.validate(filename, file.size, Filename_Validator.PDF_FILE_TYPE)
-            pdf_serializer.save()
-
-            wiper = PdfMetadataWiper()
-            wiper.perform_wipe_metadata(filename)
 
             if (is_valid_file == 'valid'):
+                pdf_serializer.save()
+                VirusTotalFileValidator.is_file_clean(filename)
+
+                wiper = PdfMetadataWiper()
+                wiper.perform_wipe_metadata(filename)
+
                 wiped_pdf_file = open(properties.FILE_DIRECTORY + filename, 'rb')
 
                 response = HttpResponse(content=wiped_pdf_file)

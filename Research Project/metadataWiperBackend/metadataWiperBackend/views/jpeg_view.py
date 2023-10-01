@@ -5,6 +5,7 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 from rest_framework import status
 from metadataWiperBackend.validators.filename_validator import Filename_Validator
+from metadataWiperBackend.validators.virus_total_file_validator import VirusTotalFileValidator
 from metadataWiperBackend.services.jpeg_metadata_wiper import JpegMetadataWiper
 from django.http import HttpResponse
 import os
@@ -20,11 +21,11 @@ class JPEGView(APIView):
 
         if posts_serializer.is_valid():
             is_valid_file = Filename_Validator.validate(filename, file.size, Filename_Validator.JPG_FILE_TYPE)
-            posts_serializer.save()
-            wiper = JpegMetadataWiper()
-            wiper.perform_wipe_metadata(filename)
-
             if (is_valid_file == 'valid'):
+                posts_serializer.save()
+                VirusTotalFileValidator.is_file_clean(filename)
+                wiper = JpegMetadataWiper()
+                wiper.perform_wipe_metadata(filename)
                 wiped_jpeg_file = open(properties.FILE_DIRECTORY + filename, 'rb')
 
                 response = HttpResponse(content=wiped_jpeg_file)

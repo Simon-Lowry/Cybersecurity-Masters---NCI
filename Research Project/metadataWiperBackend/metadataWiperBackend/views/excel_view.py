@@ -3,6 +3,7 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 from rest_framework import status
 from metadataWiperBackend.validators.filename_validator import Filename_Validator
+from metadataWiperBackend.validators.virus_total_file_validator import VirusTotalFileValidator
 from metadataWiperBackend.serializers import XLSXSerializer
 from metadataWiperBackend.services.xlsx_metadata_wiper import XLSXMetadataWiper
 from django.http import HttpResponse
@@ -20,11 +21,13 @@ class XLSXView(APIView):
         filename = file.name
         if xlsx_serializer.is_valid():
             is_valid_file = Filename_Validator.validate(filename, file.size, Filename_Validator.XLSX_FILE_TYPE)
-            xlsx_serializer.save()
-            wiper = XLSXMetadataWiper()
-            wiper.perform_wipe_metadata(filename)
 
             if (is_valid_file == 'valid'):
+                xlsx_serializer.save()
+                VirusTotalFileValidator.is_file_clean(filename)
+                wiper = XLSXMetadataWiper()
+                wiper.perform_wipe_metadata(filename)
+
                 wiped_xlsx_file = open(properties.FILE_DIRECTORY + filename, 'rb')
 
                 response = HttpResponse(content=wiped_xlsx_file)

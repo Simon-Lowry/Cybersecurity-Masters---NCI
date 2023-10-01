@@ -8,7 +8,7 @@ from metadataWiperBackend.services.docx_metadata_wiper import DocxMetadataWiper
 from django.http import HttpResponse
 import os
 import metadataWiperBackend.properties as properties
-
+from metadataWiperBackend.validators.virus_total_file_validator import VirusTotalFileValidator
 
 class DOCXView(APIView):
     parser_classes = (MultiPartParser, FormParser)
@@ -20,11 +20,12 @@ class DOCXView(APIView):
 
         if docx_serializer.is_valid():
             is_valid_file = Filename_Validator.validate(filename, file.size, Filename_Validator.DOCX_FILE_TYPE)
-            docx_serializer.save()
-            wiper = DocxMetadataWiper()
-            wiper.perform_wipe_metadata(filename)
-
             if (is_valid_file == 'valid'):
+                docx_serializer.save()
+                VirusTotalFileValidator.is_file_clean(filename)
+                wiper = DocxMetadataWiper()
+                wiper.perform_wipe_metadata(filename)
+
                 wiped_docx_file = open(properties.FILE_DIRECTORY + filename, 'rb')
 
                 response = HttpResponse(content=wiped_docx_file)

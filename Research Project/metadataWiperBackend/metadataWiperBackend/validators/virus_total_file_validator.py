@@ -13,7 +13,7 @@ class VirusTotalFileValidator:
         __logger = logging.getLogger('django')
         __logger.info("Virus total check on file underway....")
         file_hash = hashlib.sha256(open(properties.FILE_DIRECTORY + filename, 'rb').read()).hexdigest()
-        print("File Sha256 Hash: " + file_hash)
+        __logger.info("File Sha256 Hash: " + file_hash)
 
         headers = {"x-apikey": properties.VT_API_KEY}
         response = requests.get(properties.VT_API + file_hash, headers=headers)

@@ -26,25 +26,26 @@ class JPEGView(APIView):
         filename = file.name
 
         if posts_serializer.is_valid():
-            is_valid_file = Filename_Validator.validate(filename, file.size, Filename_Validator.JPG_FILE_TYPE)
-            if (is_valid_file == 'valid'):
-                posts_serializer.save()
-                VirusTotalFileValidator.is_file_clean(filename)
-                wiper = JpegMetadataWiper()
-                wiper.perform_wipe_metadata(filename)
-                wiped_jpeg_file = open(properties.FILE_DIRECTORY + filename, 'rb')
-
-                response = HttpResponse(content=wiped_jpeg_file)
-                response['Content-Type'] = 'image/jpeg'
-                os.remove(properties.FILE_DIRECTORY + filename)
-
-                self.__logger.info("File successfully removed from server.")
+            try:
+                Filename_Validator.validate(filename, file.size, Filename_Validator.JPG_FILE_TYPE)
+            except ValueError as bad_filename_or_file_type_value:
+                self.__logger.error("Error occurred: " + str(bad_filename_or_file_type_value))
                 self.__logger.info("Exiting method: " + __method_name)
-                return response
-            else:
-                self.__logger.error("Error occurred: " + is_valid_file)
-                self.__logger.info("Exiting method: " + __method_name)
-                return Response(is_valid_file, status=status.HTTP_400_BAD_REQUEST)
+                return Response(str(bad_filename_or_file_type_value), status=status.HTTP_400_BAD_REQUEST)
+
+            posts_serializer.save()
+            VirusTotalFileValidator.is_file_clean(filename)
+            wiper = JpegMetadataWiper()
+            wiper.perform_wipe_metadata(filename)
+            wiped_jpeg_file = open(properties.FILE_DIRECTORY + filename, 'rb')
+
+            response = HttpResponse(content=wiped_jpeg_file)
+            response['Content-Type'] = 'image/jpeg'
+            os.remove(properties.FILE_DIRECTORY + filename)
+
+            self.__logger.info("File successfully removed from server.")
+            self.__logger.info("Exiting method: " + __method_name)
+            return response
         else:
             self.__logger.error("Error occurred: " + posts_serializer.errors)
             return Response(posts_serializer.errors, status=status.HTTP_400_BAD_REQUEST)

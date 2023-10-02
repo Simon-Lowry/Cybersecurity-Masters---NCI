@@ -150,8 +150,10 @@ LOGGING = {
     'handlers': {
         'console': {
             'level': 'INFO',
-            'class': 'logging.StreamHandler'
-        }
+            'class': 'logging.StreamHandler',
+            'formatter': 'custom',
+
+        },
     },
     'formatters':{
         'custom': {

@@ -25,24 +25,25 @@ class XLSXView(APIView):
         file = request.FILES['xlsx_file']
         filename = file.name
         if xlsx_serializer.is_valid():
-            is_valid_file = Filename_Validator.validate(filename, file.size, Filename_Validator.XLSX_FILE_TYPE)
+            try:
+                Filename_Validator.validate(filename, file.size, Filename_Validator.XLSX_FILE_TYPE)
+            except ValueError as bad_filename_or_file_type_value:
+                self.__logger.error("Error occurred: " + str(bad_filename_or_file_type_value))
+                self.__logger.info("Exiting method: " + __method_name)
+                return Response(str(bad_filename_or_file_type_value), status=status.HTTP_400_BAD_REQUEST)
 
-            if (is_valid_file == 'valid'):
-                xlsx_serializer.save()
-                VirusTotalFileValidator.is_file_clean(filename)
-                wiper = XLSXMetadataWiper()
-                wiper.perform_wipe_metadata(filename)
+            xlsx_serializer.save()
+            VirusTotalFileValidator.is_file_clean(filename)
+            wiper = XLSXMetadataWiper()
+            wiper.perform_wipe_metadata(filename)
 
-                wiped_xlsx_file = open(properties.FILE_DIRECTORY + filename, 'rb')
+            wiped_xlsx_file = open(properties.FILE_DIRECTORY + filename, 'rb')
 
-                response = HttpResponse(content=wiped_xlsx_file)
-                response['Content-Type'] = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8'
-                os.remove(properties.FILE_DIRECTORY + filename)
-                self.__logger.info("File successfully removed from server.")
-                return response
-            else:
-                self.__logger.error("Error cocurred: " + is_valid_file)
-                return Response(is_valid_file, status=status.HTTP_400_BAD_REQUEST)
+            response = HttpResponse(content=wiped_xlsx_file)
+            response['Content-Type'] = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8'
+            os.remove(properties.FILE_DIRECTORY + filename)
+            self.__logger.info("File successfully removed from server.")
+            return response
         else:
             self.__logger.error('error', xlsx_serializer.errors)
             return Response(xlsx_serializer.errors, status=status.HTTP_400_BAD_REQUEST)

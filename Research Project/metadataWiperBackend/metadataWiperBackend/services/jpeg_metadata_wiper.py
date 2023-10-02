@@ -35,7 +35,7 @@ class JpegMetadataWiper:
     ## https://stackoverflow.com/questions/32085948/python-pil-exiftags-not-sure-what-it-is-all-about
     ## https://gist.github.com/erans/983821
     def read_jpeg_metadata(self, filename: str):
-        print("Performing read of jpeg metadata")
+        self.__logger.info("Performing read of jpeg metadata")
         file_path = properties.FILE_DIRECTORY + filename
         jpeg_file = Image.open(properties.FILE_DIRECTORY + filename)
         # Print the attributes of the image
@@ -49,7 +49,7 @@ class JpegMetadataWiper:
             # decode bytes
             if isinstance(data, bytes):
                 data = data.decode()
-            print(f"{tag:25}: {data}")
+            self.__logger.info(f"{tag:25}: {data}")
 
     def wipe_jpeg_metadata(self, filename: str):
         image_path = properties.FILE_DIRECTORY + filename

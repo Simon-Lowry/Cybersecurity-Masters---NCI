@@ -2,31 +2,35 @@ import openpyxl
 from metadataWiperBackend.utils.file_operations import get_file_size
 from metadataWiperBackend.utils.time_calculator import time_calculator
 import metadataWiperBackend.properties as properties
+import logging
 
 class XLSXMetadataWiper:
+    __logger = logging.getLogger('django')
+    __class_name = "XLSXMetadataWiper"
     def perform_wipe_metadata(self, filename:str):
+        __method_name = "perform_wipe_metadata"
+        self.__logger.info("Entered method: " + __method_name)
+
         self.read_excel_file_metadata(filename)
         file_size_before_metadata_wipe = get_file_size(properties.FILE_DIRECTORY + filename)
-        print()
 
         time = time_calculator()
         self.wipe_excel_file_metadata(filename)
-        print()
         time_taken_to_wipe_metadata = time.get_time_taken_for_wiping_completion()
         self.read_excel_file_metadata(filename)
         file_size_after_metadata_wipe = get_file_size(properties.FILE_DIRECTORY + filename)
-        print("File size before in bytes: " + str(file_size_before_metadata_wipe))
-        print("File size after in bytes: " + str(file_size_after_metadata_wipe))
-        print ("Time taken to wipe metadata: " + time_taken_to_wipe_metadata)
+        self.__logger.info("File size before in bytes: " + str(file_size_before_metadata_wipe))
+        self.__logger.info("File size after in bytes: " + str(file_size_after_metadata_wipe))
+        self.__logger.info("Time taken to wipe metadata: " + time_taken_to_wipe_metadata)
 
 
 
       ######NOTE:
         #TODO: Must account for null and empty values, check for strings and dates
     def read_excel_file_metadata(self, filename: str):
-        print("Reading excel file metadata: ")
+        self.__logger.info("Reading excel file metadata: ")
         excel_workbook = openpyxl.load_workbook(properties.FILE_DIRECTORY + filename)
-     #   print("Type: " + type(excel_workbook))
+     #   self.__logger.info("Type: " + type(excel_workbook))
         created_date = excel_workbook.properties.created.strftime('%Y-%m-%d')
         last_modified = excel_workbook.properties.last_modified_by
         subject = excel_workbook.properties.subject
@@ -35,40 +39,40 @@ class XLSXMetadataWiper:
      #   company = excel_workbook.properties.company
         category = excel_workbook.properties.category
 
-        print ("Metadata of Excel file ")
+        self.__logger.info("Metadata of Excel file ")
         if type(title) == str:
-            print ("Title: " + subject)
+            self.__logger.info("Title: " + subject)
         else:
-            print ("Title: empty")
+            self.__logger.info("Title: empty")
 
         if type(created_date) == str:
-            print("Created date: " + created_date)
+            self.__logger.info("Created date: " + created_date)
         else:
-            print("Created date: " + created_date)
+            self.__logger.info("Created date: " + created_date)
 
         if type(last_modified) == str:
-            print("Last modified by: " + last_modified)
+            self.__logger.info("Last modified by: " + last_modified)
         else:
-            print("Last modified by: empty")
+            self.__logger.info("Last modified by: empty")
 
         if type(subject) == str:
-            print("Subject: " + subject)
+            self.__logger.info("Subject: " + subject)
         else:
-            print("Subject: empty")
+            self.__logger.info("Subject: empty")
 
         if type(keywords) == str:
-            print("Keywords: " + keywords)
+            self.__logger.info("Keywords: " + keywords)
         else:
-            print("Keywords: empty")
+            self.__logger.info("Keywords: empty")
 
         if type(category) == str:
-            print("Category: " + category)
+            self.__logger.info("Category: " + category)
         else:
-            print("Category: empty")
+            self.__logger.info("Category: empty")
 
 
     def wipe_excel_file_metadata(self, filename: str):
-        print("Wiping file metadata....")
+        self.__logger.info("Wiping file metadata....")
         excel_workbook = openpyxl.load_workbook(properties.FILE_DIRECTORY + filename)
         #   print("Type: " + type(excel_workbook))
         #TODO: fix this for dates
@@ -80,7 +84,7 @@ class XLSXMetadataWiper:
         #   company = excel_workbook.properties.company
         excel_workbook.properties.category = ''
         excel_workbook.save(properties.FILE_DIRECTORY + filename)
-        print("Wiping file metadata process complete.")
+        self.__logger.info("Wiping file metadata process complete.")
 
 
 

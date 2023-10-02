@@ -2,39 +2,44 @@ from PyPDF2 import PdfReader, PdfWriter, PdfFileMerger
 from metadataWiperBackend.utils.file_operations import get_file_size
 from metadataWiperBackend.utils.time_calculator import time_calculator
 import metadataWiperBackend.properties as properties
+import logging
 
 class PdfMetadataWiper:
+    __logger = logging.getLogger('django')
+    __class_name = "PdfMetadataWiper"
     # All of the Document Information Dictionary Metadata attributes
     __METADATA_DID_ATTRIBUTES = ['/Title', '/Author', '/Subject', '/Keywords', '/Creator', '/Producer', '/CreationDate'
         , '/ModDate', '/Trapped']
     new_file_name = None
 
     def perform_wipe_metadata(self, filename):
+        __method_name = "perform_wipe_metadata"
+        self.__logger.info("Entered method: " + __method_name)
+
         self.wipePdfMetadata(filename)
 
     def wipePdfMetadata(self, filename):
         pdf = PdfReader(properties.FILE_DIRECTORY + filename)
-        print ("Beginning pdf wipe metdata process....")
-        print ("Filename: " + filename)
-        print(len(pdf.pages))
+        self.__logger.info("Beginning pdf wipe metdata process....")
+        self.__logger.info("Filename: " + filename)
+        self.__logger.info(len(pdf.pages))
 
-        print ("Did Metadata attributes prior to deletion: ")
+        self.__logger.info("Did Metadata attributes prior to deletion: ")
         file_size_before_metadata_wipe = get_file_size(properties.FILE_DIRECTORY + filename)
         pdf_did_metadata = self.outputPDFDIDMetadata(filename)
 
         time = time_calculator()
         pdfContents = self.obtainPdfContents(filename)
         merged_pdf_data = addRedactedPDFMetadata(pdfContents)
-        print (merged_pdf_data)
         self.new_file_name = filename
         createNewPDFWithWipedMetadata( self.new_file_name, merged_pdf_data)
         time_taken_to_wipe_metadata = time.get_time_taken_for_wiping_completion()
 
         self.outputPDFDIDMetadata(self.new_file_name)
         file_size_after_metadata_wipe = get_file_size(properties.FILE_DIRECTORY + self.new_file_name)
-        print("File size before in bytes: " + str(file_size_before_metadata_wipe))
-        print("File size after in bytes: " + str(file_size_after_metadata_wipe))
-        print("Time taken to wipe metadata: " + time_taken_to_wipe_metadata)
+        self.__logger.info("File size before in bytes: " + str(file_size_before_metadata_wipe))
+        self.__logger.info("File size after in bytes: " + str(file_size_after_metadata_wipe))
+        self.__logger.info("Time taken to wipe metadata: " + time_taken_to_wipe_metadata)
 
     def outputPDFDIDMetadata(self, pdfFile:str):
         """
@@ -50,7 +55,7 @@ class PdfMetadataWiper:
                 didMetadata[i] = didMetadataReader.get(i)
             except:
                 didMetadata[i] = ''
-        print(didMetadata)
+        self.__logger.info(didMetadata)
         return didMetadata
 
     def obtainPdfContents(self, pdfFile: str):

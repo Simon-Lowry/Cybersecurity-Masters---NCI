@@ -4,25 +4,30 @@ from exif import Image as ExifImage
 from metadataWiperBackend.utils.file_operations import get_file_size
 from metadataWiperBackend.utils.time_calculator import time_calculator
 import metadataWiperBackend.properties as properties
+import logging
+
 
 class JpegMetadataWiper:
+    __logger = logging.getLogger('django')
+    __class_name = "JpegMetadataWiper"
     def perform_wipe_metadata(self, filename: str):
-        print("Entered jpeg metadata wiper")
+        __method_name = "perform_wipe_metadata"
+        self.__logger.info("Entered method: " + __method_name)
+
         self.read_jpeg_metadata(filename)
         file_size_before_metadata_wipe = get_file_size(properties.FILE_DIRECTORY + filename)
 
         time = time_calculator()
         self.wipe_jpeg_metadata(filename)
-        print()
 
         time_taken_to_wipe_metadata = time.get_time_taken_for_wiping_completion()
         self.read_jpeg_metadata(filename)
         file_size_after_metadata_wipe = get_file_size(properties.FILE_DIRECTORY + filename)
-        print("File size in bytes: " + str(file_size_before_metadata_wipe))
-        print ("File size after in bytes: " + str(file_size_after_metadata_wipe))
+        self.__logger.info("File size in bytes: " + str(file_size_before_metadata_wipe))
+        self.__logger.info ("File size after in bytes: " + str(file_size_after_metadata_wipe))
         file_size_change = file_size_after_metadata_wipe - file_size_before_metadata_wipe
-        print("Difference in file size after wiping metadata: " + str(file_size_change) + "kb")
-        print ("Time taken to wipe metadata: " + time_taken_to_wipe_metadata )
+        self.__logger.info("Difference in file size after wiping metadata: " + str(file_size_change) + "kb")
+        self.__logger.info("Time taken to wipe metadata: " + time_taken_to_wipe_metadata )
 
 
     ##TODO, find out about PIL.ExifTags.GPS and incorporate

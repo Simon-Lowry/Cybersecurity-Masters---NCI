@@ -9,11 +9,17 @@ from django.http import HttpResponse
 import os
 import metadataWiperBackend.properties as properties
 from metadataWiperBackend.validators.virus_total_file_validator import VirusTotalFileValidator
+import logging
+
 
 class DOCXView(APIView):
     parser_classes = (MultiPartParser, FormParser)
+    __logger = logging.getLogger('django')
+    __class_name = "DOCXView"
 
     def post(self, request, *args, **kwargs):
+        __method_name = "post"
+        self.__logger.info("Entered method: " + __method_name + ", in class: " + self.__class_name)
         docx_serializer = DOCXSerializer(data=request.data)
         file = request.FILES['docx_file']
         filename = file.name
@@ -31,10 +37,10 @@ class DOCXView(APIView):
                 response = HttpResponse(content=wiped_docx_file)
                 response['Content-Type'] = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document;charset=UTF-8'
                 os.remove(properties.FILE_DIRECTORY + filename)
-                print("File successfully removed from server.")
+                self.__logger.info("File successfully removed from server.")
                 return response
             else:
-                print(is_valid_file)
+                self.__logger.error(is_valid_file)
                 return Response(is_valid_file, status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response(docx_serializer.errors, status=status.HTTP_400_BAD_REQUEST)

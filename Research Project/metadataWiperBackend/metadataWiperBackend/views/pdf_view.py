@@ -9,11 +9,18 @@ from metadataWiperBackend.services.pdf_metadata_wiper import PdfMetadataWiper
 from django.http import HttpResponse
 import os
 import metadataWiperBackend.properties as properties
+import logging
+
 
 class PDFView(APIView):
     parser_classes = (MultiPartParser, FormParser)
+    __logger = logging.getLogger('django')
+    __class_name = "PDFView"
+
 
     def post(self, request, *args, **kwargs):
+        __method_name = "post"
+        self.__logger.info("Entered method: " + __method_name + ", in class: " + self.__class_name)
         pdf_serializer = PDFSerializer(data=request.data)
         file = request.FILES['pdf_file']
         filename = file.name
@@ -33,12 +40,13 @@ class PDFView(APIView):
                 response = HttpResponse(content=wiped_pdf_file)
                 response['Content-Type'] = 'application/pdf;charset=UTF-8'
                 os.remove(properties.FILE_DIRECTORY + wiper.new_file_name)
-                print("File successfully removed from server.")
+                self.__logger.info("File successfully removed from server.")
+                self.__logger.info("Exiting method: " + __method_name)
                 return response
             else:
-                print(is_valid_file)
+                self.__logger.error("Error occurred: " + is_valid_file)
                 return Response(is_valid_file, status=status.HTTP_400_BAD_REQUEST)
         else:
-            print('error', pdf_serializer.errors)
+            self.__logger.error('Error occurred: ', pdf_serializer.errors)
             return Response(pdf_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

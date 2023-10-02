@@ -4,13 +4,19 @@ import datetime
 from metadataWiperBackend.utils.file_operations import get_file_size
 from metadataWiperBackend.utils.time_calculator import time_calculator
 import metadataWiperBackend.properties as properties
+import logging
 
 class DocxMetadataWiper:
+    __logger = logging.getLogger('django')
+    __class_name = "DocxMetadataWiper"
     def perform_wipe_metadata(self, docxFile: str):
+        __method_name = "perform_wipe_metadata"
+        self.__logger.info("Entered method: " + __method_name)
+
         self.get_docx_file_metdata(docxFile)
 
         file_size_before_metadata_wipe = get_file_size(properties.FILE_DIRECTORY + docxFile)
-        print("File size in bytes before wipe: " + str(file_size_before_metadata_wipe))
+        self.__logger.info("File size in bytes before wipe: " + str(file_size_before_metadata_wipe))
 
         # perform metadata wiping and measure time taken to complete wiping
         time = time_calculator()
@@ -20,13 +26,14 @@ class DocxMetadataWiper:
         self.get_docx_file_metdata(docxFile)
         file_size_after_metadata_wipe = get_file_size(properties.FILE_DIRECTORY + docxFile)
 
-        print("File size in bytes after wipe: " + str(file_size_after_metadata_wipe))
-        print ("Time taken to wipe metadata: " + time_taken_to_wipe_metadata)
+        self.__logger.info("File size in bytes after wipe: " + str(file_size_after_metadata_wipe))
+        self.__logger.info ("Time taken to wipe metadata: " + time_taken_to_wipe_metadata)
 
 
 
     def get_docx_file_metdata(self, docxFile: str):
-        print("Entering get file metadata....")
+        __method_name = "get_docx_file_metdata"
+        self.__logger.info("Entering method: " + __method_name)
         os.chdir(properties.FILE_DIRECTORY)
         doc = docx.Document(docxFile)
 
@@ -36,8 +43,8 @@ class DocxMetadataWiper:
             if not d.startswith('_'):
                 metadata[d] = getattr(prop, d)
 
-        print("Docx file metadata prior to wiping:")
-        print(metadata)
+        self.__logger.info("Docx file metadata prior to wiping:")
+        self.__logger.info(metadata)
         return metadata
 
 

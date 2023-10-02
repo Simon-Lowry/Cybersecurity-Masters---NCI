@@ -9,12 +9,17 @@ from metadataWiperBackend.services.xlsx_metadata_wiper import XLSXMetadataWiper
 from django.http import HttpResponse
 import os
 import metadataWiperBackend.properties as properties
+import logging
 
 
 class XLSXView(APIView):
     parser_classes = (MultiPartParser, FormParser)
+    __logger = logging.getLogger('django')
+    __class_name = "XLSXView"
 
     def post(self, request, *args, **kwargs):
+        __method_name = "post"
+        self.__logger.info("Entered method: " + __method_name + ", in class: " + self.__class_name)
         xlsx_serializer = XLSXSerializer(data=request.data)
 
         file = request.FILES['xlsx_file']
@@ -33,11 +38,11 @@ class XLSXView(APIView):
                 response = HttpResponse(content=wiped_xlsx_file)
                 response['Content-Type'] = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8'
                 os.remove(properties.FILE_DIRECTORY + filename)
-                print("File successfully removed from server.")
+                self.__logger.info("File successfully removed from server.")
                 return response
             else:
-                print(is_valid_file)
+                self.__logger.error("Error cocurred: " + is_valid_file)
                 return Response(is_valid_file, status=status.HTTP_400_BAD_REQUEST)
         else:
-            print('error', xlsx_serializer.errors)
+            self.__logger.error('error', xlsx_serializer.errors)
             return Response(xlsx_serializer.errors, status=status.HTTP_400_BAD_REQUEST)

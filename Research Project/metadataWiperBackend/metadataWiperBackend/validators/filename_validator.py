@@ -1,9 +1,12 @@
+import logging
 
 ## ensure is in filetype allowlist and is expected type
 ## does not contain double dot in name
 ## protect against file name length
 ## protect against file size
 class Filename_Validator():
+    __logger = logging.getLogger('django')
+    __class_name = "Filename_Validator"
     JPG_FILE_TYPE = '.jpg'
     XLSX_FILE_TYPE = '.xlsx'
     PDF_FILE_TYPE = '.pdf'
@@ -27,7 +30,7 @@ class Filename_Validator():
         if (error_on_file_type != 'valid'):
             return error_on_file_type
 
-        print ("File validation process complete.")
+        print("File validation process complete.")
         return 'valid'
     def isAcceptedFileType(filename: str, expected_file_type: str):
         if (expected_file_type == Filename_Validator.JPG_FILE_TYPE):

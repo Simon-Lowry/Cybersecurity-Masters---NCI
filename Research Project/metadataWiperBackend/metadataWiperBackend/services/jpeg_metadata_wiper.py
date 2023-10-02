@@ -41,6 +41,9 @@ class JpegMetadataWiper:
         # Print the attributes of the image
         exifdata = jpeg_file._getexif()
 
+        if exifdata is None:
+            raise Exception("Unable to read file metadata, no values returned.")
+
         # iterating over all EXIF data fields
         for tag_id in exifdata:
             # get the tag name, instead of human unreadable tag id

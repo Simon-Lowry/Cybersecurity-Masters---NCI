@@ -6,6 +6,7 @@ from metadataWiperBackend.validators.filename_validator import Filename_Validato
 from metadataWiperBackend.validators.virus_total_file_validator import VirusTotalFileValidator
 from metadataWiperBackend.serializers import PDFSerializer
 from metadataWiperBackend.services.pdf_metadata_wiper import PdfMetadataWiper
+from metadataWiperBackend.utils.client_ip_logger import ClientIPLogger
 from django.http import HttpResponse
 import os
 import metadataWiperBackend.properties as properties
@@ -21,6 +22,8 @@ class PDFView(APIView):
     def post(self, request, *args, **kwargs):
         __method_name = "post"
         self.__logger.info("Entered method: " + __method_name + ", in class: " + self.__class_name)
+        ClientIPLogger.log_ip(request)
+
         pdf_serializer = PDFSerializer(data=request.data)
         file = request.FILES['pdf_file']
         filename = file.name

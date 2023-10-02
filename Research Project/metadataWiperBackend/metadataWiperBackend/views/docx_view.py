@@ -5,6 +5,7 @@ from rest_framework import status
 from metadataWiperBackend.validators.filename_validator import Filename_Validator
 from metadataWiperBackend.serializers import DOCXSerializer
 from metadataWiperBackend.services.docx_metadata_wiper import DocxMetadataWiper
+from metadataWiperBackend.utils.client_ip_logger import ClientIPLogger
 from django.http import HttpResponse
 import os
 import metadataWiperBackend.properties as properties
@@ -20,6 +21,8 @@ class DOCXView(APIView):
     def post(self, request, *args, **kwargs):
         __method_name = "post"
         self.__logger.info("Entered method: " + __method_name + ", in class: " + self.__class_name)
+        ClientIPLogger.log_ip(request)
+
         docx_serializer = DOCXSerializer(data=request.data)
         file = request.FILES['docx_file']
         filename = file.name

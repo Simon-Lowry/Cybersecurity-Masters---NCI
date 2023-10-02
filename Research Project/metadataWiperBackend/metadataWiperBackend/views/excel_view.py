@@ -6,6 +6,7 @@ from metadataWiperBackend.validators.filename_validator import Filename_Validato
 from metadataWiperBackend.validators.virus_total_file_validator import VirusTotalFileValidator
 from metadataWiperBackend.serializers import XLSXSerializer
 from metadataWiperBackend.services.xlsx_metadata_wiper import XLSXMetadataWiper
+from metadataWiperBackend.utils.client_ip_logger import ClientIPLogger
 from django.http import HttpResponse
 import os
 import metadataWiperBackend.properties as properties
@@ -20,6 +21,8 @@ class XLSXView(APIView):
     def post(self, request, *args, **kwargs):
         __method_name = "post"
         self.__logger.info("Entered method: " + __method_name + ", in class: " + self.__class_name)
+        ClientIPLogger.log_ip(request)
+
         xlsx_serializer = XLSXSerializer(data=request.data)
 
         file = request.FILES['xlsx_file']

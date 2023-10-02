@@ -1,5 +1,4 @@
 from metadataWiperBackend.serializers import JPEGSerializer
-from metadataWiperBackend.models import JPEGModel
 from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
@@ -7,11 +6,11 @@ from rest_framework import status
 from metadataWiperBackend.validators.filename_validator import Filename_Validator
 from metadataWiperBackend.validators.virus_total_file_validator import VirusTotalFileValidator
 from metadataWiperBackend.services.jpeg_metadata_wiper import JpegMetadataWiper
+from metadataWiperBackend.utils.client_ip_logger import ClientIPLogger
 from django.http import HttpResponse
 import os
 import metadataWiperBackend.properties as properties
 import logging
-
 
 class JPEGView(APIView):
     parser_classes = (MultiPartParser, FormParser)
@@ -21,6 +20,8 @@ class JPEGView(APIView):
     def post(self, request, *args, **kwargs):
         __method_name = "post"
         self.__logger.info("Entered method: " + __method_name + ", in class: " + self.__class_name)
+        ClientIPLogger.log_ip(request)
+
         posts_serializer = JPEGSerializer(data=request.data)
         file = request.FILES['image']
         filename = file.name

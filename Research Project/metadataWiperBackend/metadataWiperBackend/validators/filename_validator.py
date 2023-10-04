@@ -32,7 +32,9 @@ class Filename_Validator():
 
         __logger.info("File validation process complete.")
         __logger.info("Exiting method: " + __method_name)
-        return 'valid'
+        return True
+
+    @staticmethod
     def is_accepted_file_type(filename: str, expected_file_type: str):
         __logger = logging.getLogger('django')
         __method_name = "isAcceptedFileType"

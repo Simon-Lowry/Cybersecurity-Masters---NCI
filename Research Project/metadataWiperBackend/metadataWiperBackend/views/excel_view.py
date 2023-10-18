@@ -33,7 +33,8 @@ class XLSXView(APIView):
             except ValueError as bad_filename_or_file_type_value:
                 self.__logger.error("Error occurred: " + str(bad_filename_or_file_type_value))
                 self.__logger.info("Exiting method: " + __method_name)
-                return Response(str(bad_filename_or_file_type_value), status=status.HTTP_400_BAD_REQUEST)
+                return Response({"error": str(bad_filename_or_file_type_value)}, status=status.HTTP_400_BAD_REQUEST,
+                                content_type="application/json")
 
             xlsx_serializer.save()
             VirusTotalFileValidator.is_file_clean(filename)

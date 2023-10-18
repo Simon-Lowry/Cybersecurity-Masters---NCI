@@ -2,10 +2,17 @@ import React from "react"
 import axios from 'axios';
 import FileSaver from 'file-saver';
 import download from 'downloadjs'
+import { Card } from 'react-bootstrap';
+import "bootstrap/dist/css/bootstrap.min.css";
+import Container from 'react-bootstrap/Container';
+import Row from 'react-bootstrap/Row';
+import Col from 'react-bootstrap/Col';
 
 export default class JPEG extends React.Component {
     state = {
-        image: null
+        image: null,
+        errorOnWiping: null,
+        successMsg: null
       };
     
       handleChange = (e) => {
@@ -32,24 +39,68 @@ export default class JPEG extends React.Component {
           },
           responseType: 'blob'
   
-        }).then(function(resp) {
-          console.log(  resp.data)
+        }).then((resp) => {
+          
+          this.setState({
+             successMsg: 'Metadata successfully removed from file. Downloading modified file.'
+           })
           return download(resp.data, "image.jpg");
-        }).catch(err => console.log("Error: " + err))
+        }).catch(
+          async err => {
+            console.log("Error 2 status: " + err)
+            let error =  JSON.parse( await err.response.data.text());
+            console.log("Error 2 message: " + error['error'])
+            
+            this.setState({
+              errorOnWiping:error['error']
+            })
+         })
       };
       render() {
-        return (
-          <div className="JPEG">
-            <h1>JPEG Metadata Wiper</h1>
+        let error = this.state.errorOnWiping;
+        let successMsg = this.state.successMsg;
 
-            <form onSubmit={this.handleSubmit}>
-              <p>
-                <input type="file"
-                       id="image"
-                       accept="image/png, image/jpeg"  onChange={this.handleImageChange} required/>
-              </p>
-              <input type="submit"/>
-            </form>
+        return (
+          <div>
+            <div class="mt-4 p-5 bg-primary text-white rounded">
+                    <h1>JPG Metadata Wiper</h1>
+                    <p>Wipes the metadata of JPG files</p>
+            </div>
+            <br/> <br/>
+          <Container fluid>
+
+            <Row className="justify-content-md-center">
+              <Col md="3">
+              <Card border="primary">
+              <Card.Title >Enter JPG file here:</Card.Title>
+                <div className="JPEG">
+                  <form onSubmit={this.handleSubmit}>
+                    <p>
+                      <input type="file"
+                            id="image"
+                            accept="image/png, image/jpeg"  onChange={this.handleImageChange} required/>
+                    </p>
+                    <input type="submit"/>
+                    {error &&(
+                      <div>
+                        <p style={{ color: "red" }}>
+                            {error}
+                        </p>
+                      </div>
+                    )}
+                    {successMsg &&(
+                      <div>
+                        <p style={{ color: "green" }}>
+                            {successMsg}
+                        </p>
+                      </div>
+                    )}
+                  </form>
+                </div>
+            </Card>
+            </Col>
+            </Row>    
+          </Container>
           </div>
         );
       }

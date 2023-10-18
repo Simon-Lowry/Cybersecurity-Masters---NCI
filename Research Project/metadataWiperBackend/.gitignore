@@ -1,4 +1,5 @@
 metadataWiperBackend/properties.py
+metadataWiperBackend/tests/test_data.py
 media/files/
 metadataWiperBackend/views/__pycache__/
 *.pyc

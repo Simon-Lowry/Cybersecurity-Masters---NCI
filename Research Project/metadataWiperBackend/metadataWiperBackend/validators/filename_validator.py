@@ -1,9 +1,11 @@
 import logging
+import re
 
 ## ensure is in filetype allowlist and is expected type
 ## does not contain double dot in name
 ## protect against file name length
 ## protect against file size
+## filenames must only contain alphanumeric characters, underscores, hyphens and a single dot/period.
 class Filename_Validator():
     __class_name = "Filename_Validator"
     JPG_FILE_TYPE = '.jpg'
@@ -13,6 +15,7 @@ class Filename_Validator():
 
     FILE_SIZE_LIMIT = 20000000  # 20mb
 
+    @staticmethod
     def validate(filename:str, file_size, expected_file_type: str):
         __logger = logging.getLogger('django')
         __method_name = "validate"
@@ -20,13 +23,17 @@ class Filename_Validator():
         filename_length = len(filename)
 
         if (filename_length < 4 or filename_length > 30):
-            raise ValueError('Error: file must contain filetype and be longer than 30 characters')
+            raise ValueError('Error: file must contain filetype and be no longer than 30 characters')
 
         if (file_size < 1 or file_size > Filename_Validator.FILE_SIZE_LIMIT):
             raise ValueError('Error: file size rejected')
 
         if (filename.count('.') != 1):
-            raise ValueError('Error: file must only contain one dot/period')
+            raise ValueError('Error: filename must only contain one dot/period')
+
+        if (re.match("^[a-zA-Z0-9_. -]*$", filename) == None):
+            raise ValueError('Error: filenames must only contain alphanumeric characters, underscores, hyphens '
+                             'and a single dot/period.')
 
         Filename_Validator.is_accepted_file_type(filename, expected_file_type)
 

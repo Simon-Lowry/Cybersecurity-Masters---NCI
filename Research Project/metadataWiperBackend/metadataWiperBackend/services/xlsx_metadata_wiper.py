@@ -21,6 +21,8 @@ class XLSXMetadataWiper:
         file_size_after_metadata_wipe = get_file_size(properties.FILE_DIRECTORY + filename)
         self.__logger.info("File size before in bytes: " + str(file_size_before_metadata_wipe))
         self.__logger.info("File size after in bytes: " + str(file_size_after_metadata_wipe))
+        file_size_change = file_size_after_metadata_wipe - file_size_before_metadata_wipe
+        self.__logger.info("Difference in file size after wiping metadata: " + str(file_size_change) + "kb")
         self.__logger.info("Time taken to wipe metadata: " + time_taken_to_wipe_metadata)
 
 

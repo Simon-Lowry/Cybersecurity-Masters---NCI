@@ -34,7 +34,8 @@ class PDFView(APIView):
             except ValueError as inappropriate_value:
                 self.__logger.error("Error occurred: " + str(inappropriate_value))
                 self.__logger.info("Exiting method: " + __method_name)
-                return Response(str(inappropriate_value), status=status.HTTP_400_BAD_REQUEST)
+                return Response({"exception": str(inappropriate_value)}, status=status.HTTP_400_BAD_REQUEST
+                                , content_type="application/json")
 
             pdf_serializer.save()
             VirusTotalFileValidator.is_file_clean(filename)

@@ -23,17 +23,12 @@ class JpegMetadataWiper:
         time_taken_to_wipe_metadata = time.get_time_taken_for_wiping_completion()
         self.read_jpeg_metadata(filename)
         file_size_after_metadata_wipe = get_file_size(properties.FILE_DIRECTORY + filename)
-        self.__logger.info("File size in bytes: " + str(file_size_before_metadata_wipe))
+        self.__logger.info("File size in bytes prior to metadata wiping: " + str(file_size_before_metadata_wipe))
         self.__logger.info ("File size after in bytes: " + str(file_size_after_metadata_wipe))
         file_size_change = file_size_after_metadata_wipe - file_size_before_metadata_wipe
         self.__logger.info("Difference in file size after wiping metadata: " + str(file_size_change) + "kb")
         self.__logger.info("Time taken to wipe metadata: " + time_taken_to_wipe_metadata )
 
-
-    ##TODO, find out about PIL.ExifTags.GPS and incorporate
-    ## https://www.blog.pythonlibrary.org/2021/01/13/getting-gps-exif-data-with-python/
-    ## https://stackoverflow.com/questions/32085948/python-pil-exiftags-not-sure-what-it-is-all-about
-    ## https://gist.github.com/erans/983821
     def read_jpeg_metadata(self, filename: str):
         self.__logger.info("Performing read of jpeg metadata")
         file_path = properties.FILE_DIRECTORY + filename
@@ -63,8 +58,9 @@ class JpegMetadataWiper:
         exif_img.copyright = ""
         exif_img.make = ""
         exif_img.model = ""
-        exif_img.gps_latitude = 0.0
-        exif_img.gps_longitude = 0.0
+        exif_img.software = ""
+        exif_img.gps_latitude = (0.0, 0.0, 0.0)
+        exif_img.gps_longitude = (0.0, 0.0, 0.0)
         exif_img.gps_altitude = 0.0
         exif_img.gps_latitude_ref = ''
         exif_img.gps_longitude_ref = ''
